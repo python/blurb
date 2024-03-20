@@ -1,7 +1,7 @@
 import pytest
 from pyfakefs.fake_filesystem import FakeFilesystem
 
-import blurb
+from blurb import blurb
 
 
 UNCHANGED_SECTIONS = (

@@ -829,7 +829,7 @@ Run unit tests.  Only works inside source repo, not when installed.
     # unittest.main doesn't work because this isn't a module
     # so we'll do it ourselves
 
-    while not (os.path.isdir(".git") and os.path.isdir("blurb")):
+    while not os.path.isdir("blurb"):
         old_dir = os.getcwd()
         os.chdir("..")
         if old_dir == os.getcwd():
