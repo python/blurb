@@ -1,0 +1,40 @@
+name: Test
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python --version
+          python -m pip install -U pip
+          python -m pip install -U tox
+
+      - name: Tox tests
+        run: |
+          tox -e py
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3.1.5
+        with:
+          flags: ${{ matrix.python-version }}
+          name: Python ${{ matrix.python-version }}
