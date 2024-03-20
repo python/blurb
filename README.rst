@@ -4,6 +4,15 @@ blurb
 .. image:: https://img.shields.io/pypi/v/blurb.svg
     :target: https://pypi.org/project/blurb/
 
+.. image:: https://github.com/python/blurb/actions/workflows/tests.yml/badge.svg
+   :alt: GitHub Actions
+   :target: https://github.com/python/blurb/actions
+
+.. image:: https://img.shields.io/badge/Discourse-join_chat-brightgreen.svg
+   :alt: Python Discourse chat
+   :target: https://discuss.python.org/
+
+
 Overview
 --------
 
