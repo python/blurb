@@ -33,9 +33,9 @@ tests = [
   "pytest-cov",
 ]
 [project.urls]
-Changelog = "https://github.com/python/core-workflow/tree/main/blurb#changelog"
-Homepage = "https://github.com/python/core-workflow/tree/main/blurb"
-Source = "https://github.com/python/core-workflow/tree/main/blurb"
+Changelog = "https://github.com/python/blurb/blob/main/README.rst#changelog"
+Homepage = "https://github.com/python/blurb"
+Source = "https://github.com/python/blurb"
 [project.scripts]
 blurb = "blurb.blurb:main"
 
