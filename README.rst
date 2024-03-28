@@ -4,7 +4,7 @@ blurb
 .. image:: https://img.shields.io/pypi/v/blurb.svg
     :target: https://pypi.org/project/blurb/
 
-.. image:: https://github.com/python/blurb/actions/workflows/tests.yml/badge.svg
+.. image:: https://github.com/python/blurb/actions/workflows/test.yml/badge.svg
    :alt: GitHub Actions
    :target: https://github.com/python/blurb/actions
 
