@@ -8,7 +8,7 @@ requires = [
 [project]
 name = "blurb"
 description = "Command-line tool to manage CPython Misc/NEWS.d entries."
-readme = "README.rst"
+readme = "README.md"
 maintainers = [{name = "Python Core Developers", email="core-workflow@mail.python.org"}]
 authors = [{ name="Larry Hastings", email="larry@hastings.org"}]
 requires-python = ">=3.8"
@@ -33,7 +33,7 @@ tests = [
   "pytest-cov",
 ]
 [project.urls]
-Changelog = "https://github.com/python/blurb/blob/main/README.rst#changelog"
+Changelog = "https://github.com/python/blurb/blob/main/README.md#changelog"
 Homepage = "https://github.com/python/blurb"
 Source = "https://github.com/python/blurb"
 [project.scripts]
