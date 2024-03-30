@@ -56,7 +56,7 @@ through subcommands.  The subcommand is the first argument specified
 on the command-line.
 
 If you're a CPython contributor, you probably don't need to use
-anything except `blurb add`--and you don't even need to specify
+anything except `blurb add` — and you don't even need to specify
 the `add` part.
 (If no subcommand is specified, **blurb** assumes you meant `blurb add`.)
 The other commands are only expected to be useful for CPython release
@@ -232,7 +232,7 @@ have to fix up a bunch of metadata.
 
 Second, it means that if you cherry-pick a commit forward or
 backwards, you automatically pick up the `NEWS` entry too.  You
-don't need to touch anything up--the system will already do
+don't need to touch anything up — the system will already do
 the right thing.  If `NEWS` entries were already written to the
 final version directory, you'd have to move those around as
 part of the cherry-picking process.
