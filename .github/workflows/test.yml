@@ -34,7 +34,8 @@ jobs:
           tox -e py
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v3.1.5
+        uses: codecov/codecov-action@v4
         with:
           flags: ${{ matrix.python-version }}
           name: Python ${{ matrix.python-version }}
+          token: ${{ secrets.CODECOV_ORG_TOKEN }}
