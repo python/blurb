@@ -73,7 +73,7 @@ template = """
 #
 # Please enter the relevant GitHub issue number here:
 #
-.. gh-issue:
+.. gh-issue: {gh}
 
 #
 # Uncomment one of these "section:" lines to specify which section
@@ -90,6 +90,7 @@ template = """
 #.. section: IDLE
 #.. section: Tools/Demos
 #.. section: C API
+{section}
 
 # Write your Misc/NEWS.d entry below.  It should be a simple ReST paragraph.
 # Don't start with "- Issue #<n>: " or "- gh-issue-<n>: " or that sort of stuff.
@@ -451,6 +452,8 @@ class Blurbs(list):
         line_number = None
 
         def throw(s):
+            nonlocal filename
+            nonlocal line_number
             raise BlurbError(f"Error in {filename}:{line_number}:\n{s}")
 
         def finish_entry():
@@ -870,7 +873,7 @@ def find_editor():
 
 
 @subcommand
-def add():
+def add(*, gh="", section=""):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     """
@@ -881,24 +884,23 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     os.close(handle)
     atexit.register(lambda : os.unlink(tmp_path))
 
-    def init_tmp_with_template():
-        with open(tmp_path, "wt", encoding="utf-8") as file:
-            # hack:
-            # my editor likes to strip trailing whitespace from lines.
-            # normally this is a good idea.  but in the case of the template
-            # it's unhelpful.
-            # so, manually ensure there's a space at the end of the gh-issue line.
-            text = template
+    if gh:
+        try:
+            int(gh)
+        except ValueError:
+            error(f"blurb add --gh argument {gh} is not a valid integer!")
 
-            issue_line = ".. gh-issue:"
-            without_space = "\n" + issue_line + "\n"
-            with_space = "\n" + issue_line + " \n"
-            if without_space not in text:
-                sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-            text = text.replace(without_space, with_space)
-            file.write(text)
+    if section:
+        if section not in sections:
+            error(
+                f"blurb add --section argument {section!r} is not a valid section!"
+                "  Use one of:\n" + "\n".join(sections)
+            )
 
-    init_tmp_with_template()
+        section = f".. section: {section}\n"
+
+    with open(tmp_path, "wt", encoding="utf-8") as file:
+        file.write(template.format(gh=gh, section=section))
 
     # We need to be clever about EDITOR.
     # On the one hand, it might be a legitimate path to an
@@ -1221,36 +1223,55 @@ def main():
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                assert isinstance(
+                    p.default, (bool, str)
+                ), "blurb command-line processing only handles boolean options"
                 kwargs[name] = p.default
                 short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []
         done_with_options = False
+        needs_oparg = None
 
-        def handle_option(s, dict):
+        def handle_option(s, dict, fn_name):
+            nonlocal needs_oparg
             name = dict.get(s, None)
             if not name:
-                sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
+                sys.exit(f'blurb: Unknown option for {fn_name}: "{s}"')
+
+            value = kwargs[name]
+            if isinstance(value, bool):
+                kwargs[name] = not value
+            else:
+                needs_oparg = name
 
         # print(f"short_options {short_options} long_options {long_options}")
         for a in args:
+            if needs_oparg:
+                kwargs[needs_oparg] = a
+                needs_oparg = None
+                continue
+
             if done_with_options:
                 filtered_args.append(a)
                 continue
+
             if a.startswith('-'):
                 if a == "--":
                     done_with_options = True
                 elif a.startswith("--"):
-                    handle_option(a[2:], long_options)
+                    handle_option(a[2:], long_options, fn.__name__)
                 else:
                     for s in a[1:]:
-                        handle_option(s, short_options)
+                        handle_option(s, short_options, fn.__name__)
                 continue
             filtered_args.append(a)
 
+        if needs_oparg:
+            sys.exit(
+                f"Error: blurb: {fn_name} {needs_oparg} most be followed by an option argument"
+            )
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
