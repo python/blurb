@@ -1,4 +1,3 @@
-blurb version 1.0
 Part of the blurb package.
 Copyright 2015-2018 by Larry Hastings
 
