@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 
 ##
 ## blurb version 1.0
