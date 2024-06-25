@@ -851,8 +851,36 @@ def _extract_issue_number(issue, /):
     sys.exit(f"Invalid GitHub issue number: {issue}")
 
 
-def _blurb_template_text(*, issue):
+def _extract_section_name(section, /):
+    if section is None:
+        return None
+
+    section = section.strip()
+    if not section:
+        sys.exit("Empty section name!")
+
+    matches = []
+    # Try an exact or lowercase match
+    for section_name in sections:
+        if section in {section_name, section_name.lower()}:
+            matches.append(section_name)
+
+    if not matches:
+        section_list = '\n'.join(f'* {s}' for s in sections)
+        sys.exit(f"Invalid section name: {section!r}\n\n"
+                 f"Valid names are:\n\n{section_list}")
+
+    if len(matches) > 1:
+        multiple_matches = ', '.join(f'* {m}' for m in sorted(matches))
+        sys.exit(f"More than one match for {section!r}:\n\n"
+                 f"{multiple_matches}")
+
+    return matches[0]
+
+
+def _blurb_template_text(*, issue, section):
     issue_number = _extract_issue_number(issue)
+    section_name = _extract_section_name(section)
 
     text = template
 
@@ -870,11 +898,16 @@ def _blurb_template_text(*, issue):
         with_issue_number = f"\n{issue_line} {issue_number}\n"
         text = text.replace(without_space, with_issue_number)
 
+    # Uncomment the section if needed.
+    if section_name is not None:
+        pattern = f'.. section: {section_name}'
+        text = text.replace(f'#{pattern}', pattern)
+
     return text
 
 
 @subcommand
-def add(*, issue=None):
+def add(*, issue=None, section=None):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 
@@ -883,6 +916,17 @@ Use -i/--issue to specify a GitHub issue number or link, e.g.:
     blurb add -i 12345
     # or
     blurb add -i https://github.com/python/cpython/issues/12345
+
+Use -s/--section to specify the section name (case-insensitive), e.g.:
+
+    blurb add -s Library
+    # or
+    blurb add -s library
+
+The known sections names are defined as follows and
+spaces in names can be substituted for underscores:
+
+{sections}
     """
 
     editor = find_editor()
@@ -891,7 +935,7 @@ Use -i/--issue to specify a GitHub issue number or link, e.g.:
     os.close(handle)
     atexit.register(lambda : os.unlink(tmp_path))
 
-    text = _blurb_template_text(issue=issue)
+    text = _blurb_template_text(issue=issue, section=section)
     with open(tmp_path, "w", encoding="utf-8") as file:
         file.write(text)
 
@@ -940,7 +984,7 @@ Use -i/--issue to specify a GitHub issue number or link, e.g.:
     git_add_files.append(path)
     flush_git_add_files()
     print("Ready for commit.")
-
+add.__doc__ = add.__doc__.format(sections='\n'.join(f'* {s}' for s in sections))
 
 
 @subcommand

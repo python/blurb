@@ -120,6 +120,13 @@ Here's how you interact with the file:
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
   the `#` at the front of the line.
+  The section can also be specified via the ``-s`` / ``--section`` option:
+
+  ```shell
+  $ blurb add -s Library
+  # or
+  $ blurb add -s library
+  ```
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
