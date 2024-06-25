@@ -110,11 +110,13 @@ Here's how you interact with the file:
 
 * Add the GitHub issue number for this commit to the
   end of the `.. gh-issue:` line.
+  Can be passed on the CLI via the `--gh` flag.
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
   the `#` at the front of the line.
+  Can be passed on the CLI via the `--section` flag.
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
@@ -238,6 +240,12 @@ final version directory, you'd have to move those around as
 part of the cherry-picking process.
 
 ## Changelog
+
+### 1.2.0
+
+- Add the `--gh` and `--section` flags to the `add` command.
+  This lets you pre-fill-in the `gh-issue` and `section` fields
+  in the template.
 
 ### 1.1.0
 
