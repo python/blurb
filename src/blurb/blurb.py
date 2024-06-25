@@ -766,7 +766,14 @@ If subcommand is not specified, prints one-line summaries for every command.
     for name, p in inspect.signature(fn).parameters.items():
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
             short_option = name[0]
-            options.append(f" [-{short_option}|--{name}]")
+            if isinstance(p.default, bool):
+                options.append(f" [-{short_option}|--{name}]")
+            else:
+                if p.default is None:
+                    metavar = f'{name.upper()}'
+                else:
+                    metavar = f'{name.upper()}[={p.default}]'
+                options.append(f" [-{short_option}|--{name} {metavar}]")
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             positionals.append(" ")
             has_default = (p.default != inspect._empty)
@@ -1169,22 +1176,37 @@ def main():
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                if (p.default is not None
+                        and not isinstance(p.default, (bool, str))):
+                    sys.exit("blurb command-line processing cannot handle "
+                             f"options of type {type(p.default).__qualname__}")
+
                 kwargs[name] = p.default
                 short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []
         done_with_options = False
+        consume_after = None
 
         def handle_option(s, dict):
+            nonlocal consume_after
             name = dict.get(s, None)
             if not name:
                 sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
+
+            value = kwargs[name]
+            if isinstance(value, bool):
+                kwargs[name] = not value
+            else:
+                consume_after = name
 
         # print(f"short_options {short_options} long_options {long_options}")
         for a in args:
+            if consume_after:
+                kwargs[consume_after] = a
+                consume_after = None
+                continue
             if done_with_options:
                 filtered_args.append(a)
                 continue
@@ -1199,6 +1221,9 @@ def main():
                 continue
             filtered_args.append(a)
 
+        if consume_after:
+            sys.exit(f"Error: blurb: {subcommand} {consume_after} "
+                     f"must be followed by an option argument")
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
