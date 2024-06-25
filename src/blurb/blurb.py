@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 ##
 ## blurb version 1.0
@@ -800,7 +800,14 @@ If subcommand is not specified, prints one-line summaries for every command.
     for name, p in inspect.signature(fn).parameters.items():
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
             short_option = name[0]
-            options.append(f" [-{short_option}|--{name}]")
+            if isinstance(p.default, bool):
+                options.append(f" [-{short_option}|--{name}]")
+            else:
+                if p.default is None:
+                    metavar = f'{name.upper()}'
+                else:
+                    metavar = f'{name.upper()}[={p.default}]'
+                options.append(f" [-{short_option}|--{name} {metavar}]")
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             positionals.append(" ")
             has_default = (p.default != inspect._empty)
@@ -869,10 +876,112 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
+def _extract_issue_number(issue):
+    if issue is None:
+        return None
+
+    issue = raw_issue = str(issue).strip()
+    if issue.startswith('gh-'):
+        issue = issue[3:]
+    if issue.isdigit():
+        return issue
+
+    match = re.match(r'^(?:https?://)?github\.com/python/cpython/issues/(\d+)$', issue)
+    if match is None:
+        sys.exit(f"Invalid GitHub Issue: {raw_issue}")
+    return match.group(1)
+
+
+def _extract_section_name(section):
+    if section is None:
+        return None
+
+    section = raw_section = section.strip()
+    if section.strip('+-').isdigit():
+        section_index = int(section) - 1
+        if not (0 <= section_index < len(sections)):
+            sys.exit(f"Invalid section ID: {int(section)}\n\n"
+                     f"Choose from the following table:\n\n"
+                     f'{sections_table}')
+        return sections[section_index]
+
+    if not section:
+        sys.exit(f"Empty section name!")
+
+    section_words = section.lower().replace('_', ' ').split(' ')
+    section_pattern = '[_ ]'.join(map(re.escape, section_words))
+    section_re = re.compile(section_pattern, re.I)
+
+    matches = []
+    for section_name in sections:
+        if section_re.match(section_name):
+            matches.append(section_name)
+
+    if not matches:
+        sys.exit(f"Invalid section name: {raw_section}\n\n"
+                 f"Choose from the following table:\n\n"
+                 f'{sections_table}')
+
+    if len(matches) > 1:
+        sys.exit(f"More than one match for: {raw_section}\n\n"
+                 f"Choose from the following table:\n\n"
+                 f'{sections_table}')
+
+    return matches[0]
+
+
+def _update_blurb_template(issue, section):
+    issue_number = _extract_issue_number(issue)
+    section_name = _extract_section_name(section)
+
+    # Ensure that a whitespace is given after 'gh-issue:'
+    # to help filling up the template, unless an issue
+    # number was manually specified via the CLI.
+    text = template
+
+    issue_line = ".. gh-issue:"
+    pattern = "\n" + issue_line + "\n"
+    if issue_number is None:
+        if pattern not in text:
+            sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
+        replacement = "\n" + issue_line + " \n"
+    else:
+        if pattern not in text:
+            sys.exit("Can't find gh-issue line to fill!")
+        replacement = "\n" + issue_line + " " + str(issue_number) + "\n"
+
+    text = text.replace(pattern, replacement)
+
+    # Uncomment the section if needed.
+    if section_name is not None:
+        pattern = f'#.. section: {section_name}'
+        text = text.replace(pattern, pattern.lstrip('#'))
+
+    return text
+
+
 @subcommand
-def add():
+def add(*, issue=None, section=None):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+
+Use -i/--issue to specify a GitHub issue number or link, e.g.:
+
+    blurb add -i 109198
+    # or equivalently
+    blurb add -i https://github.com/python/cpython/issues/109198
+
+The blurb's section can be specified via -s/--section
+with its ID or name (case insenstitive), e.g.:
+
+    blurb add -s %(section_example_name)r
+    # or equivalently
+    blurb add -s %(section_example_id)d
+
+The known sections IDs and names are defined as follows,
+and spaces in names can be substituted for underscores:
+
+%(sections)s
     """
 
     editor = find_editor()
@@ -883,20 +992,8 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 
     def init_tmp_with_template():
         with open(tmp_path, "wt", encoding="utf-8") as file:
-            # hack:
-            # my editor likes to strip trailing whitespace from lines.
-            # normally this is a good idea.  but in the case of the template
-            # it's unhelpful.
-            # so, manually ensure there's a space at the end of the gh-issue line.
-            text = template
-
-            issue_line = ".. gh-issue:"
-            without_space = "\n" + issue_line + "\n"
-            with_space = "\n" + issue_line + " \n"
-            if without_space not in text:
-                sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-            text = text.replace(without_space, with_space)
-            file.write(text)
+            updated = _update_blurb_template(issue, section)
+            file.write(updated)
 
     init_tmp_with_template()
 
@@ -946,6 +1043,23 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     flush_git_add_files()
     print("Ready for commit.")
 
+
+assert sections, 'sections is empty'
+_sec_id_w = 2 + len(str(len(sections)))
+_sec_name_w = 2 + max(map(len, sections))
+_sec_rowrule = '+'.join(['',  '-' * _sec_id_w, '-' * _sec_name_w, ''])
+_format_row = ('| {:%d} | {:%d} |' % (_sec_id_w - 2, _sec_name_w - 2)).format
+sections_table = '\n'.join(itertools.chain(
+    [_sec_rowrule, _format_row('ID', 'Section'),_sec_rowrule.replace('-', '=')],
+    itertools.starmap(_format_row, enumerate(sections, 1)),
+    [_sec_rowrule]
+))
+del _format_row, _sec_rowrule, _sec_name_w, _sec_id_w
+add.__doc__ %= dict(
+    section_example_id=3,
+    section_example_name=sections[2],
+    sections=sections_table,
+)
 
 
 @subcommand
@@ -1221,25 +1335,39 @@ def main():
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                assert p.default is None or isinstance(p.default, (bool, str)), \
+                    "blurb command-line processing only handles boolean options"
                 kwargs[name] = p.default
                 short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []
         done_with_options = False
+        consume_after = None
 
         def handle_option(s, dict):
+            nonlocal consume_after
             name = dict.get(s, None)
             if not name:
                 sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
+
+            value = kwargs[name]
+            if isinstance(value, bool):
+                kwargs[name] = not value
+            else:
+                consume_after = name
 
         # print(f"short_options {short_options} long_options {long_options}")
         for a in args:
+            if consume_after:
+                kwargs[consume_after] = a
+                consume_after = None
+                continue
+
             if done_with_options:
                 filtered_args.append(a)
                 continue
+
             if a.startswith('-'):
                 if a == "--":
                     done_with_options = True
@@ -1249,8 +1377,12 @@ def main():
                     for s in a[1:]:
                         handle_option(s, short_options)
                 continue
+
             filtered_args.append(a)
 
+        if consume_after:
+            sys.exit(f"Error: blurb: {subcommand} {consume_after} "
+                     f"most be followed by an option argument")
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
