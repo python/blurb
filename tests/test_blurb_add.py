@@ -145,4 +145,3 @@ def test_illformed_gh_issue_line(invalid, monkeypatch):
         cm.setattr(blurb, 'template', template)
         with pytest.raises(SystemExit, match=error_message):
             blurb._update_blurb_template(issue='1234', section=None)
-
