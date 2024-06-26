@@ -1,16 +1,9 @@
-from itertools import chain, product
 import re
 
 import pytest
 
 from blurb import blurb
 
-
-ALLOWED_ISSUE_URL_PREFIX = [
-    'github.com/python/cpython/issues/',
-    'http://github.com/python/cpython/issues/',
-    'https://github.com/python/cpython/issues/'
-]
 
 ALLOWED_SECTION_IDS = list(map(str, range(1 + len(blurb.sections), 1)))
 
@@ -26,9 +19,26 @@ def test_valid_no_issue_number():
 
 
 @pytest.mark.parametrize(('issue', 'expect'), [
-    (f'{w1}{prefix}12345{w2}', '12345')
-    for (w1, w2) in product(['', ' '], repeat=2)
-    for prefix in ('', 'gh-', *ALLOWED_ISSUE_URL_PREFIX)
+    # issue given by their number
+    ('12345', '12345'),
+    ('12345 ', '12345'),
+    (' 12345', '12345'),
+    (' 12345 ', '12345'),
+    # issue given by their number and a 'gh-' prefix
+    ('gh-12345', '12345'),
+    ('gh-12345 ', '12345'),
+    (' gh-12345', '12345'),
+    (' gh-12345 ', '12345'),
+    # issue given by their URL (no protocol)
+    ('github.com/python/cpython/issues/12345', '12345'),
+    ('github.com/python/cpython/issues/12345 ', '12345'),
+    (' github.com/python/cpython/issues/12345', '12345'),
+    (' github.com/python/cpython/issues/12345 ', '12345'),
+    # issue given by their URL (with protocol)
+    ('https://github.com/python/cpython/issues/12345', '12345'),
+    ('https://github.com/python/cpython/issues/12345 ', '12345'),
+    (' https://github.com/python/cpython/issues/12345', '12345'),
+    (' https://github.com/python/cpython/issues/12345 ', '12345'),
 ])
 def test_valid_issue_number(issue, expect):
     actual = blurb._extract_issue_number(issue)
@@ -46,17 +56,27 @@ def test_valid_issue_number(issue, expect):
 
 
 @pytest.mark.parametrize('issue', [
+    '',
     'abc',
     'gh-abc',
     'gh-',
     'bpo-',
-    *[
-        ''.join(_) for _ in
-        product(ALLOWED_ISSUE_URL_PREFIX, ('abc', '1234?param=1'))
-    ]
+    'bpo-12345',
+    'github.com/python/cpython/issues',
+    'github.com/python/cpython/issues/',
+    'github.com/python/cpython/issues/abc',
+    'github.com/python/cpython/issues/gh-abc',
+    'github.com/python/cpython/issues/gh-123',
+    'github.com/python/cpython/issues/1234?param=1',
+    'https://github.com/python/cpython/issues',
+    'https://github.com/python/cpython/issues/',
+    'https://github.com/python/cpython/issues/abc',
+    'https://github.com/python/cpython/issues/gh-abc',
+    'https://github.com/python/cpython/issues/gh-123',
+    'https://github.com/python/cpython/issues/1234?param=1',
 ])
 def test_invalid_issue_number(issue):
-    error_message = re.escape(f'Invalid GitHub Issue: {issue}')
+    error_message = re.escape(f'Invalid GitHub issue: {issue}')
     with pytest.raises(SystemExit, match=error_message):
         blurb._extract_issue_number(issue)
 
@@ -79,28 +99,6 @@ def test_valid_section_id(section):
             assert f'.. section: {blurb.sections[index]}' not in res
 
 
-@pytest.mark.parametrize(('section', 'expect'), chain(
-    zip(blurb.sections, blurb.sections),
-    ((s.lower(), s) for s in blurb.sections),
-    ((s.upper(), s) for s in blurb.sections),
-    ((s.replace('_', ' '), s) for s in blurb.sections),
-    ((s.replace('_', ' ').lower(), s) for s in blurb.sections),
-    ((s.replace('_', ' ').upper(), s) for s in blurb.sections),
-))
-def test_valid_section_name(section, expect):
-    actual = blurb._extract_section_name(section)
-    assert actual == expect
-
-    res = blurb._update_blurb_template(issue=None, section=section)
-    res = res.splitlines()
-    for section_name in blurb.sections:
-        if section_name == expect:
-            assert f'.. section: {section_name}' in res
-        else:
-            assert f'#.. section: {section_name}' in res
-            assert f'.. section: {section_name}' not in res
-
-
 @pytest.mark.parametrize('section', ['-1', '0', '1337'])
 def test_invalid_section_id(section):
     error_message = re.escape(f'Invalid section ID: {int(section)}')
@@ -110,6 +108,70 @@ def test_invalid_section_id(section):
 
     with pytest.raises(SystemExit, match=error_message):
         blurb._update_blurb_template(issue=None, section=section)
+
+
+class TestValidSectionNames:
+    @staticmethod
+    def check(section, expect):
+        actual = blurb._extract_section_name(section)
+        assert actual == expect
+
+        res = blurb._update_blurb_template(issue=None, section=section)
+        res = res.splitlines()
+        for section_name in blurb.sections:
+            if section_name == expect:
+                assert f'.. section: {section_name}' in res
+            else:
+                assert f'#.. section: {section_name}' in res
+                assert f'.. section: {section_name}' not in res
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'),
+        tuple(zip(blurb.sections, blurb.sections))
+    )
+    def test_exact_names(self, section, expect):
+        self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'), [
+            ('Lib', 'Library'),
+            ('lib', 'Library'),
+            ('lib ', 'Library'),
+            ('doc', 'Documentation'),
+            ('Core and', 'Core and Builtins'),
+            ('core and', 'Core and Builtins'),
+            ('Core_and', 'Core and Builtins'),
+            ('core_and', 'Core and Builtins'),
+            ('core-and', 'Core and Builtins'),
+            ('Tools', 'Tools/Demos'),
+        ]
+    )
+    def test_partial_names(self, section, expect):
+        self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'),
+        [(name.lower(), name) for name in blurb.sections],
+    )
+    def test_exact_names_lowercase(self, section, expect):
+        self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'),
+        [(name.upper(), name) for name in blurb.sections],
+    )
+    def test_exact_names_uppercase(self, section, expect):
+        self.check(section, expect)
+
+
+@pytest.mark.parametrize('section', ['', ' ', '      '])
+def test_empty_section_name(section):
+    error_message = re.escape('Empty section name!')
+    with pytest.raises(SystemExit, match=error_message):
+        blurb._extract_section_name('')
+
+    with pytest.raises(SystemExit, match=error_message):
+        blurb._update_blurb_template(issue=None, section='')
 
 
 @pytest.mark.parametrize('section', ['libraryy', 'Not a section'])
@@ -123,14 +185,21 @@ def test_invalid_section_name(section):
         blurb._update_blurb_template(issue=None, section=section)
 
 
-@pytest.mark.parametrize('section', ['', ' ', '      '])
-def test_empty_section_name(section):
-    error_message = re.escape('Empty section name!')
+@pytest.mark.parametrize(('section', 'matches'), [
+    # 'matches' must be a sorted sequence of matching section names
+    ('C', ['C API', 'Core and Builtins']),
+    ('T', ['Tests', 'Tools/Demos']),
+])
+def test_ambiguous_section_name(section, matches):
+    matching_list = ', '.join(map(repr, matches))
+    error_message = re.escape(f'More than one match for: {section}\n'
+                              f"Matches: {matching_list}")
+    error_message = re.compile(rf'{error_message}\n\n.+', re.MULTILINE)
     with pytest.raises(SystemExit, match=error_message):
-        blurb._extract_section_name('')
+        blurb._extract_section_name(section)
 
     with pytest.raises(SystemExit, match=error_message):
-        blurb._update_blurb_template(issue=None, section='')
+        blurb._update_blurb_template(issue=None, section=section)
 
 
 @pytest.mark.parametrize('invalid', [
