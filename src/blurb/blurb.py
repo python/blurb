@@ -908,7 +908,8 @@ def _extract_section_name(section):
     if not section:
         sys.exit(f"Empty section name!")
 
-    section_words = section.lower().replace('_', ' ').split(' ')
+    sanitized = re.sub(r'[_-]', ' ', section)
+    section_words = re.split(r'\s+', sanitized)
     section_pattern = '[_ ]'.join(map(re.escape, section_words))
     section_re = re.compile(section_pattern, re.I)
 
@@ -923,7 +924,9 @@ def _extract_section_name(section):
                  f'{sections_table}')
 
     if len(matches) > 1:
-        sys.exit(f"More than one match for: {raw_section}\n\n"
+        multiple_matches = ', '.join(map(repr, sorted(matches)))
+        sys.exit(f"More than one match for: {raw_section}\n"
+                 f"Matches: {multiple_matches}\n\n"
                  f"Choose from the following table:\n\n"
                  f'{sections_table}')
 
