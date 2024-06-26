@@ -102,7 +102,6 @@ def test_valid_section_id(section_index, section_id, section_name):
     res = blurb._update_blurb_template(issue=None, section=section_id)
     res = res.splitlines()
 
-
     for index, _ in enumerate(blurb.sections):
         if index == section_index:
             assert f'.. section: {blurb.sections[index]}' in res
