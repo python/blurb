@@ -886,9 +886,9 @@ def _extract_issue_number(issue):
     if issue.isdigit():
         return issue
 
-    match = re.match(r'^(?:https?://)?github\.com/python/cpython/issues/(\d+)$', issue)
+    match = re.match(r'^(?:https://)?github\.com/python/cpython/issues/(\d+)$', issue)
     if match is None:
-        sys.exit(f"Invalid GitHub Issue: {raw_issue}")
+        sys.exit(f"Invalid GitHub issue: {raw_issue}")
     return match.group(1)
 
 
@@ -1382,7 +1382,7 @@ def main():
 
         if consume_after:
             sys.exit(f"Error: blurb: {subcommand} {consume_after} "
-                     f"most be followed by an option argument")
+                     f"must be followed by an option argument")
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
