@@ -1,7 +1,14 @@
 import pytest
-from pyfakefs.fake_filesystem import FakeFilesystem
 
 from blurb import blurb
+
+
+def test_section_names():
+    assert tuple(blurb.sections) == (
+        'Security', 'Core and Builtins', 'Library', 'Documentation',
+        'Tests', 'Build', 'Windows', 'macOS', 'IDLE', 'Tools/Demos',
+        'C API',
+    )
 
 
 UNCHANGED_SECTIONS = (
