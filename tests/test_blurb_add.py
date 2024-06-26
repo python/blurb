@@ -135,15 +135,17 @@ class TestValidSectionNames:
     @pytest.mark.parametrize(
         ('section', 'expect'), [
             ('Lib', 'Library'),
-            ('lib', 'Library'),
-            ('lib ', 'Library'),
+            ('Tools', 'Tools/Demos'),
             ('doc', 'Documentation'),
+            ('Core-and-Builtins', 'Core and Builtins'),
+            ('Core_and_Builtins', 'Core and Builtins'),
+            ('Core_and-Builtins', 'Core and Builtins'),
             ('Core and', 'Core and Builtins'),
-            ('core and', 'Core and Builtins'),
             ('Core_and', 'Core and Builtins'),
             ('core_and', 'Core and Builtins'),
             ('core-and', 'Core and Builtins'),
-            ('Tools', 'Tools/Demos'),
+            ('Core   and   Builtins', 'Core and Builtins'),
+            ('cOre _ and - bUILtins', 'Core and Builtins'),
         ]
     )
     def test_partial_names(self, section, expect):
