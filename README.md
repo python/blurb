@@ -109,12 +109,43 @@ The template for the `blurb add` message looks like this:
 Here's how you interact with the file:
 
 * Add the GitHub issue number for this commit to the
-  end of the `.. gh-issue:` line.
+  end of the `.. gh-issue:` line. The issue can also
+  be specified via the ``-i/--issue`` option:
+
+  ```shell
+  blurb add -i 109198
+  # or equivalently
+  blurb add -i https://github.com/python/cpython/issues/109198
+  ```
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
-  the `#` at the front of the line.
+  the `#` at the front of the line.  Alternatively, the section can
+  be specified via the ``-s/--section`` option:
+
+  ```shell
+  blurb add -s "Library"
+  # or equivalently
+  blurb add -s 3
+  ```
+
+  The section can be referred to from its name (case insensitive) or its ID
+  defined according to the following table:
+
+  | ID | Section           |
+  |----|-------------------|
+  |  1 | Security          |
+  |  2 | Core and Builtins |
+  |  3 | Library           |
+  |  4 | Documentation     |
+  |  5 | Tests             |
+  |  6 | Build             |
+  |  7 | Windows           |
+  |  8 | macOS             |
+  |  9 | IDLE              |
+  | 10 | Tools/Demos       |
+  | 11 | C API             |
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
@@ -238,6 +269,12 @@ final version directory, you'd have to move those around as
 part of the cherry-picking process.
 
 ## Changelog
+
+### 1.2.0
+
+- Add the `-i/--issue` and `-s/--section` options to the `add` command.
+  This lets you pre-fill-in the `gh-issue` and `section` fields
+  in the template.
 
 ### 1.1.0
 
