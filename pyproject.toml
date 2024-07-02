@@ -9,8 +9,12 @@ requires = [
 name = "blurb"
 description = "Command-line tool to manage CPython Misc/NEWS.d entries."
 readme = "README.md"
-maintainers = [{name = "Python Core Developers", email="core-workflow@mail.python.org"}]
-authors = [{ name="Larry Hastings", email="larry@hastings.org"}]
+maintainers = [
+  { name = "Python Core Developers", email = "core-workflow@mail.python.org" },
+]
+authors = [
+  { name = "Larry Hastings", email = "larry@hastings.org" },
+]
 requires-python = ">=3.8"
 classifiers = [
   "Intended Audience :: Developers",
@@ -21,23 +25,19 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
 ]
 dynamic = [
   "version",
 ]
-[project.optional-dependencies]
-tests = [
+optional-dependencies.tests = [
   "pyfakefs",
   "pytest",
   "pytest-cov",
 ]
-[project.urls]
-Changelog = "https://github.com/python/blurb/blob/main/README.md#changelog"
-Homepage = "https://github.com/python/blurb"
-Source = "https://github.com/python/blurb"
-[project.scripts]
-blurb = "blurb.blurb:main"
+urls.Changelog = "https://github.com/python/blurb/blob/main/README.md#changelog"
+urls.Homepage = "https://github.com/python/blurb"
+urls.Source = "https://github.com/python/blurb"
+scripts.blurb = "blurb.blurb:main"
 
 [tool.hatch]
 version.source = "vcs"
