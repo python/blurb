@@ -239,6 +239,18 @@ part of the cherry-picking process.
 
 ## Changelog
 
+### 1.2.0
+
+- Replace spaces with underscores in news directory.
+- Drop support for Python 3.7.
+- Remove `blurb split` command.
+- Replace `gh-issue-NNNN:` with `gh-NNNN:` in the output.
+- Accept GitHub issues numbered only 32426 or above.
+- Improve error checking when parsing a Blurb.
+- Loosen README check for CPython forks.
+- Move code from `python/core-workflow` to own `python/blurb` repo.
+- Deploy to PyPI via Trusted Publishers.
+
 ### 1.1.0
 
 - Support GitHub Issues in addition to b.p.o (bugs.python.org).
