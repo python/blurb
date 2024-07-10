@@ -191,32 +191,6 @@ uses the name of the directory CPython is checked out to.
 version I'm releasing, and using this shortcut saves me some typing.)
 
 
-### blurb split
-
-`blurb split` only needs to be run once per-branch, ever.
-It reads in `Misc/NEWS`
-and splits it into individual `.rst` files.
-The text files are stored as follows::
-
-    Misc/NEWS.d/<version>.rst
-
-`<version>` is the version number of Python where the
-change was committed.  Pre-release versions are denoted
-with an abbreviation: `a` for alphas, `b` for betas,
-and `rc` for release candidates.
-
-The individual `<version>.rst` files actually (usually)
-contain multiple entries.  Each entry is delimited by a
-single line containing `..` by itself.
-
-The assumption is, at the point we convert over to *blurb*,
-we'll run `blurb split` on each active branch,
-remove `Misc/NEWS` from the repo entirely,
-never run `blurb split` ever again,
-and ride off into the sunset, confident that the world is now
-a better place.
-
-
 
 ## The "next" directory
 
@@ -238,6 +212,18 @@ final version directory, you'd have to move those around as
 part of the cherry-picking process.
 
 ## Changelog
+
+### 1.2.0
+
+- Replace spaces with underscores in news directory.
+- Drop support for Python 3.7.
+- Remove `blurb split` command.
+- Replace `gh-issue-NNNN:` with `gh-NNNN:` in the output.
+- Accept GitHub issues numbered only 32426 or above.
+- Improve error checking when parsing a Blurb.
+- Loosen README check for CPython forks.
+- Move code from `python/core-workflow` to own `python/blurb` repo.
+- Deploy to PyPI via Trusted Publishers.
 
 ### 1.1.0
 
