@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
-__version__ = "1.2.0"
 
 ##
-## blurb version 1.0
 ## Part of the blurb package.
 ## Copyright 2015-2018 by Larry Hastings
 ##
@@ -61,6 +59,8 @@ import tempfile
 import textwrap
 import time
 import unittest
+
+from . import __version__
 
 
 #
