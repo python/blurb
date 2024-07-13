@@ -1048,7 +1048,7 @@ _format_row = (f'| {{:{_sec_name_width - 2:d}}} |').format
 del _sec_name_width
 sections_table = '\n'.join(map(_format_row, sections))
 del _format_row
-sections_table = '\n'.join((_sec_row_rule, sections_table, _sec_rowrule))
+sections_table = '\n'.join((_sec_row_rule, sections_table, _sec_row_rule))
 del _sec_row_rule
 add.__doc__ = add.__doc__.format(sections=sections_table)
 
