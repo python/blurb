@@ -243,7 +243,7 @@ part of the cherry-picking process.
 - Move code from `python/core-workflow` to own `python/blurb` repo.
 - Deploy to PyPI via Trusted Publishers.
 - Add the `-i/--issue` and `-s/--section` options to the `add` command.
-  This lets you pre-fill-in the `gh-issue` and `section` fields
+  This lets you pre-fill the `gh-issue` and `section` fields.
   in the template.
 
 ### 1.1.0
