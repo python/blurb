@@ -42,6 +42,7 @@
 import atexit
 import base64
 import builtins
+from collections import defaultdict
 import glob
 import hashlib
 import io
@@ -894,6 +895,40 @@ def _extract_issue_number(issue):
     return match.group(1)
 
 
+# Mapping from section names to additional allowed patterns
+# which ignore whitespaces for composed section names.
+#
+# For instance, 'Core and Builtins' is represented by the
+# pattern 'Core<SEP>?and<SEP>?Builtins' where <SEP> are the
+# allowed user separators '_', '-', ' ' and '/'.
+_section_special_patterns = {__: set() for __ in sections}
+
+# Mapping from section names to sanitized names (no separators, lowercase).
+#
+# For instance, 'Core and Builtins' is mapped to 'coreandbuiltins', and
+# passing a prefix of that would match to 'Core and Builtins'. Note that
+# this is only used as a last resort.
+_section_names_lower_nosep = {}
+
+for _section in sections:
+    _sanitized = re.sub(r'[_ /]', ' ', _section)
+    _section_words = re.split(r'\s+', _sanitized)
+    _section_names_lower_nosep[_section] = ''.join(_section_words).lower()
+    del _sanitized
+    _section_pattern = r'[_\- /]?'.join(map(re.escape, _section_words))
+    # add '$' to avoid matching after the pattern
+    _section_pattern = f'{_section_pattern}$'
+    del _section_words
+    _section_pattern = re.compile(_section_pattern, re.I)
+    _section_special_patterns[_section].add(_section_pattern)
+    del _section_pattern, _section
+
+# the following statements will raise KeyError if the names are invalid
+_section_special_patterns['C API'].add(re.compile(r'^((?<=c)[_\- /])?api?$', re.I))
+_section_special_patterns['Core and Builtins'].add(re.compile('^builtins?$', re.I))
+_section_special_patterns['Tools/Demos'].add(re.compile('^dem(?:o|os)?$', re.I))
+
+
 def _extract_section_name(section):
     if section is None:
         return None
@@ -902,15 +937,35 @@ def _extract_section_name(section):
     if not section:
         sys.exit("Empty section name!")
 
-    sanitized = re.sub(r'[_-]', ' ', section)
-    section_words = re.split(r'\s+', sanitized)
-    section_pattern = '[_ ]'.join(map(re.escape, section_words))
-    section_re = re.compile(section_pattern, re.I)
-
     matches = []
+
+    # '_', '-', ' ' and '/' are the allowed (user) separators
+    sanitized = re.sub(r'[_\- /]', ' ', section)
+    section_words = re.split(r'\s+', sanitized)
+    # '_', ' ' and '/' are the separators used by known sections
+    section_pattern = r'[_ /]'.join(map(re.escape, section_words))
+    section_pattern = re.compile(section_pattern, re.I)
     for section_name in sections:
-        if section_re.match(section_name):
+        # try to use the input as the pattern to match against known names
+        if section_pattern.match(section_name):
             matches.append(section_name)
+
+    if not matches:
+        for section_name, special_patterns in _section_special_patterns.items():
+            for special_pattern in special_patterns:
+                if special_pattern.match(sanitized):
+                    matches.append(section_name)
+                    break
+
+    if not matches:
+        # try to use the input as the prefix of a known section name
+        normalized_prefix = ''.join(section_words).lower()
+        for section_name, normalized in _section_names_lower_nosep.items():
+            if (
+                len(normalized_prefix) <= len(normalized) and
+                normalized.startswith(normalized_prefix)
+            ):
+                matches.append(section_name)
 
     if not matches:
         sys.exit(f"Invalid section name: {raw_section!r}\n\n"
