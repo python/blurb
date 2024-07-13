@@ -105,9 +105,50 @@ class TestValidSectionNames:
 
     @pytest.mark.parametrize(
         ('section', 'expect'), [
+            ('Sec', 'Security'),
+            ('sec', 'Security'),
+            ('security', 'Security'),
+            ('Core And', 'Core and Builtins'),
+            ('Core And Built', 'Core and Builtins'),
+            ('Core And Builtins', 'Core and Builtins'),
             ('Lib', 'Library'),
-            ('Tools', 'Tools/Demos'),
             ('doc', 'Documentation'),
+            ('document', 'Documentation'),
+            ('Tes', 'Tests'),
+            ('tes', 'Tests'),
+            ('Test', 'Tests'),
+            ('Tests', 'Tests'),
+            ('Buil', 'Build'),
+            ('buil', 'Build'),
+            ('build', 'Build'),
+            ('Tool', 'Tools/Demos'),
+            ('Tools', 'Tools/Demos'),
+            ('Tools/', 'Tools/Demos'),
+            ('core', 'Core and Builtins'),
+        ]
+    )
+    def test_partial_words(self, section, expect):
+        # test that partial matching from the beginning is supported
+        self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'), [
+            ('builtin', 'Core and Builtins'),
+            ('builtins', 'Core and Builtins'),
+            ('api', 'C API'),
+            ('c-api', 'C API'),
+            ('c/api', 'C API'),
+            ('c api', 'C API'),
+            ('dem', 'Tools/Demos'),
+            ('demo', 'Tools/Demos'),
+            ('demos', 'Tools/Demos'),
+        ]
+    )
+    def test_partial_special_names(self, section, expect):
+        self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('section', 'expect'), [
             ('Core-and-Builtins', 'Core and Builtins'),
             ('Core_and_Builtins', 'Core and Builtins'),
             ('Core_and-Builtins', 'Core and Builtins'),
@@ -117,10 +158,32 @@ class TestValidSectionNames:
             ('core-and', 'Core and Builtins'),
             ('Core   and   Builtins', 'Core and Builtins'),
             ('cOre _ and - bUILtins', 'Core and Builtins'),
+            ('Tools/demo', 'Tools/Demos'),
+            ('Tools-demo', 'Tools/Demos'),
+            ('Tools demo', 'Tools/Demos'),
         ]
     )
-    def test_partial_names(self, section, expect):
+    def test_partial_separators(self, section, expect):
         self.check(section, expect)
+
+    @pytest.mark.parametrize(
+        ('prefix', 'expect'), [
+            ('corean', 'Core and Builtins'),
+            ('coreand', 'Core and Builtins'),
+            ('coreandbuilt', 'Core and Builtins'),
+            ('coreand Builtins', 'Core and Builtins'),
+            ('coreand Builtins', 'Core and Builtins'),
+            ('coreAnd Builtins', 'Core and Builtins'),
+            ('CoreAnd Builtins', 'Core and Builtins'),
+            ('Coreand', 'Core and Builtins'),
+            ('Coreand Builtins', 'Core and Builtins'),
+            ('Coreand builtin', 'Core and Builtins'),
+            ('Coreand buil', 'Core and Builtins'),
+        ]
+    )
+    def test_partial_prefix_words(self, prefix, expect):
+        # spaces are not needed if we cannot find a correct match
+        self.check(prefix, expect)
 
     @pytest.mark.parametrize(
         ('section', 'expect'),
@@ -147,7 +210,19 @@ def test_empty_section_name(section):
         blurb._update_blurb_template(issue=None, section='')
 
 
-@pytest.mark.parametrize('section', ['libraryy', 'Not a section'])
+@pytest.mark.parametrize('section', [
+    # invalid
+    'invalid',
+    'Not a section',
+    # non-special names
+    'c?api',
+    'cXapi',
+    'C+API',
+    # super-strings
+    'Library and more',
+    'library3',
+    'librari',
+])
 def test_invalid_section_name(section):
     error_message = re.escape(f'Invalid section name: {section!r}')
     error_message = re.compile(rf'{error_message}\n\n.+', re.MULTILINE)
