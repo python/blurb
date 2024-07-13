@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
-
 ##
 ## Part of the blurb package.
 ## Copyright 2015-2018 by Larry Hastings
@@ -61,6 +60,7 @@ import time
 import unittest
 
 from . import __version__
+
 
 #
 # This template is the canonical list of acceptable section names!
