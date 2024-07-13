@@ -132,21 +132,7 @@ Here's how you interact with the file:
 
   The known section names are given in the following table. The match
   is performed casse insensitively and partial matching is supported
-  as long as the match is unique:
-
-  | Section Name      |
-  |-------------------|
-  | Security          |
-  | Core and Builtins |
-  | Library           |
-  | Documentation     |
-  | Tests             |
-  | Build             |
-  | Windows           |
-  | macOS             |
-  | IDLE              |
-  | Tools/Demos       |
-  | C API             |
+  as long as the match is unique.
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
