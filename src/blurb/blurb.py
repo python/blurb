@@ -42,7 +42,6 @@
 import atexit
 import base64
 import builtins
-from collections import defaultdict
 import glob
 import hashlib
 import io
@@ -911,10 +910,12 @@ _section_special_patterns = {__: set() for __ in sections}
 _section_names_lower_nosep = {}
 
 for _section in sections:
-    _sanitized = re.sub(r'[_ /]', ' ', _section)
+    # ' ' and '/' are the separators used by known sections
+    _sanitized = re.sub(r'[ /]', ' ', _section)
     _section_words = re.split(r'\s+', _sanitized)
     _section_names_lower_nosep[_section] = ''.join(_section_words).lower()
     del _sanitized
+    # '_', '-', ' ' and '/' are the allowed (user) separators
     _section_pattern = r'[_\- /]?'.join(map(re.escape, _section_words))
     # add '$' to avoid matching after the pattern
     _section_pattern = f'{_section_pattern}$'
@@ -942,8 +943,8 @@ def _extract_section_name(section):
     # '_', '-', ' ' and '/' are the allowed (user) separators
     sanitized = re.sub(r'[_\- /]', ' ', section)
     section_words = re.split(r'\s+', sanitized)
-    # '_', ' ' and '/' are the separators used by known sections
-    section_pattern = r'[_ /]'.join(map(re.escape, section_words))
+    # ' ' and '/' are the separators used by known sections
+    section_pattern = r'[ /]'.join(map(re.escape, section_words))
     section_pattern = re.compile(section_pattern, re.I)
     for section_name in sections:
         # try to use the input as the pattern to match against known names
