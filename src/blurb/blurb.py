@@ -60,12 +60,18 @@ import textwrap
 import time
 import unittest
 
-from . import __version__
+try:
+    from . import __version__
+except ImportError:
+    __version__ = 12343
 
 
 #
 # This template is the canonical list of acceptable section names!
 # It's parsed internally into the "sections" set.
+#
+# Do not forget to update the example for the 'add' command if
+# the section names change as well as the corresponding tests.
 #
 
 template = """
@@ -897,16 +903,8 @@ def _extract_section_name(section):
         return None
 
     section = raw_section = section.strip()
-    if section.strip('+-').isdigit():
-        section_index = int(section) - 1
-        if not (0 <= section_index < len(sections)):
-            sys.exit(f"Invalid section ID: {int(section)}\n\n"
-                     f"Choose from the following table:\n\n"
-                     f'{sections_table}')
-        return sections[section_index]
-
     if not section:
-        sys.exit(f"Empty section name!")
+        sys.exit("Empty section name!")
 
     sanitized = re.sub(r'[_-]', ' ', section)
     section_words = re.split(r'\s+', sanitized)
@@ -919,16 +917,14 @@ def _extract_section_name(section):
             matches.append(section_name)
 
     if not matches:
-        sys.exit(f"Invalid section name: {raw_section}\n\n"
+        sys.exit(f"Invalid section name: {raw_section!r}\n\n"
                  f"Choose from the following table:\n\n"
                  f'{sections_table}')
 
     if len(matches) > 1:
         multiple_matches = ', '.join(map(repr, sorted(matches)))
-        sys.exit(f"More than one match for: {raw_section}\n"
-                 f"Matches: {multiple_matches}\n\n"
-                 f"Choose from the following table:\n\n"
-                 f'{sections_table}')
+        sys.exit(f"More than one match for: {raw_section!r}\n"
+                 f"Matches: {multiple_matches}")
 
     return matches[0]
 
@@ -971,20 +967,22 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 Use -i/--issue to specify a GitHub issue number or link, e.g.:
 
     blurb add -i 109198
+
     # or equivalently
     blurb add -i https://github.com/python/cpython/issues/109198
 
 The blurb's section can be specified via -s/--section
-with its ID or name (case insenstitive), e.g.:
+with its name (case insenstitive), e.g.:
 
-    blurb add -s %(section_example_name)r
-    # or equivalently
-    blurb add -s %(section_example_id)d
+    blurb add -s 'Core and Builtins'
 
-The known sections IDs and names are defined as follows,
-and spaces in names can be substituted for underscores:
+    # or using a partial matching
+    blurb add -s core
 
-%(sections)s
+The known sections names are defined as follows and
+spaces in names can be substituted for underscores:
+
+{sections}
     """
 
     editor = find_editor()
@@ -1048,21 +1046,15 @@ and spaces in names can be substituted for underscores:
 
 
 assert sections, 'sections is empty'
-_sec_id_w = 2 + len(str(len(sections)))
-_sec_name_w = 2 + max(map(len, sections))
-_sec_rowrule = '+'.join(['',  '-' * _sec_id_w, '-' * _sec_name_w, ''])
-_format_row = ('| {:%d} | {:%d} |' % (_sec_id_w - 2, _sec_name_w - 2)).format
-sections_table = '\n'.join(itertools.chain(
-    [_sec_rowrule, _format_row('ID', 'Section'),_sec_rowrule.replace('-', '=')],
-    itertools.starmap(_format_row, enumerate(sections, 1)),
-    [_sec_rowrule]
-))
-del _format_row, _sec_rowrule, _sec_name_w, _sec_id_w
-add.__doc__ %= dict(
-    section_example_id=3,
-    section_example_name=sections[2],
-    sections=sections_table,
-)
+_sec_name_width = 2 + max(map(len, sections))
+_sec_rowrule = '+'.join(['',  '-' * _sec_name_width, ''])
+_format_row = (f'| {{:{_sec_name_width - 2:d}}} |').format
+del _sec_name_width
+sections_table = '\n'.join(map(_format_row, sections))
+del _format_row
+sections_table = '\n'.join((_sec_rowrule, sections_table, _sec_rowrule))
+del _sec_rowrule
+add.__doc__ = add.__doc__.format(sections=sections_table)
 
 
 @subcommand

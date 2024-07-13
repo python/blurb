@@ -113,9 +113,9 @@ Here's how you interact with the file:
   be specified via the ``-i/--issue`` option:
 
   ```shell
-  blurb add -i 109198
+  $ blurb add -i 109198
   # or equivalently
-  blurb add -i https://github.com/python/cpython/issues/109198
+  $ blurb add -i https://github.com/python/cpython/issues/109198
   ```
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
@@ -125,27 +125,28 @@ Here's how you interact with the file:
   be specified via the ``-s/--section`` option:
 
   ```shell
-  blurb add -s "Library"
+  $ blurb add -s 'Library'
   # or equivalently
-  blurb add -s 3
+  $ blurb add -s lib
   ```
 
-  The section can be referred to from its name (case insensitive) or its ID
-  defined according to the following table:
+  The known section names are given in the following table. The match
+  is performed casse insensitively and partial matching is supported
+  as long as the match is unique:
 
-  | ID | Section           |
-  |----|-------------------|
-  |  1 | Security          |
-  |  2 | Core and Builtins |
-  |  3 | Library           |
-  |  4 | Documentation     |
-  |  5 | Tests             |
-  |  6 | Build             |
-  |  7 | Windows           |
-  |  8 | macOS             |
-  |  9 | IDLE              |
-  | 10 | Tools/Demos       |
-  | 11 | C API             |
+  | Section Name      |
+  |-------------------|
+  | Security          |
+  | Core and Builtins |
+  | Library           |
+  | Documentation     |
+  | Tests             |
+  | Build             |
+  | Windows           |
+  | macOS             |
+  | IDLE              |
+  | Tools/Demos       |
+  | C API             |
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
