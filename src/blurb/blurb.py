@@ -60,10 +60,7 @@ import textwrap
 import time
 import unittest
 
-try:
-    from . import __version__
-except ImportError:
-    __version__ = 12343
+from . import __version__
 
 
 #
