@@ -1043,13 +1043,13 @@ spaces in names can be substituted for underscores:
 
 assert sections, 'sections is empty'
 _sec_name_width = 2 + max(map(len, sections))
-_sec_rowrule = '+'.join(['',  '-' * _sec_name_width, ''])
+_sec_row_rule = '+'.join(['',  '-' * _sec_name_width, ''])
 _format_row = (f'| {{:{_sec_name_width - 2:d}}} |').format
 del _sec_name_width
 sections_table = '\n'.join(map(_format_row, sections))
 del _format_row
-sections_table = '\n'.join((_sec_rowrule, sections_table, _sec_rowrule))
-del _sec_rowrule
+sections_table = '\n'.join((_sec_row_rule, sections_table, _sec_rowrule))
+del _sec_row_rule
 add.__doc__ = add.__doc__.format(sections=sections_table)
 
 
