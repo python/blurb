@@ -62,7 +62,6 @@ import unittest
 
 from . import __version__
 
-
 #
 # This template is the canonical list of acceptable section names!
 # It's parsed internally into the "sections" set.
