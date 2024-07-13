@@ -925,7 +925,7 @@ for _section in sections:
     del _section_pattern, _section
 
 # the following statements will raise KeyError if the names are invalid
-_section_special_patterns['C API'].add(re.compile(r'^((?<=c)[_\- /])?api?$', re.I))
+_section_special_patterns['C API'].add(re.compile(r'^((?<=c)[_\- /])?api$', re.I))
 _section_special_patterns['Core and Builtins'].add(re.compile('^builtins?$', re.I))
 _section_special_patterns['Tools/Demos'].add(re.compile('^dem(?:o|os)?$', re.I))
 
