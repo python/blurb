@@ -128,7 +128,6 @@ class TestValidSectionNames:
         ]
     )
     def test_partial_words(self, section, expect):
-        # test that partial matching from the beginning is supported
         self.check(section, expect)
 
     @pytest.mark.parametrize(
@@ -164,6 +163,7 @@ class TestValidSectionNames:
         ]
     )
     def test_partial_separators(self, section, expect):
+        # normalize the separtors '_', '-', ' ' and '/'
         self.check(section, expect)
 
     @pytest.mark.parametrize(
@@ -182,7 +182,7 @@ class TestValidSectionNames:
         ]
     )
     def test_partial_prefix_words(self, prefix, expect):
-        # spaces are not needed if we cannot find a correct match
+        # try to find a match using prefixes (without separators and lowercase)
         self.check(prefix, expect)
 
     @pytest.mark.parametrize(
