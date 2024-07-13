@@ -930,21 +930,17 @@ _section_special_patterns['Core and Builtins'].add(re.compile('^builtins?$', re.
 _section_special_patterns['Tools/Demos'].add(re.compile('^dem(?:o|os)?$', re.I))
 
 
-def _extract_section_name(section):
-    if section is None:
-        return None
-
-    section = raw_section = section.strip()
-    if not section:
-        sys.exit("Empty section name!")
+def _find_smart_matches(section):
+    # '_', '-' and ' ' are the allowed (user) whitespace separators
+    sanitized = re.sub(r'[_\- ]', ' ', section).strip()
+    if not sanitized:
+        return []
 
     matches = []
-
-    # '_', '-', ' ' and '/' are the allowed (user) separators
-    sanitized = re.sub(r'[_\- /]', ' ', section)
     section_words = re.split(r'\s+', sanitized)
     # ' ' and '/' are the separators used by known sections
     section_pattern = r'[ /]'.join(map(re.escape, section_words))
+
     section_pattern = re.compile(section_pattern, re.I)
     for section_name in sections:
         # try to use the input as the pattern to match against known names
@@ -959,7 +955,7 @@ def _extract_section_name(section):
                     break
 
     if not matches:
-        # try to use the input as the prefix of a known section name
+        # try to use the input as the prefix of a flattened section name
         normalized_prefix = ''.join(section_words).lower()
         for section_name, normalized in _section_names_lower_nosep.items():
             if (
@@ -967,6 +963,24 @@ def _extract_section_name(section):
                 normalized.startswith(normalized_prefix)
             ):
                 matches.append(section_name)
+
+    return matches
+
+def _extract_section_name(section):
+    if section is None:
+        return None
+
+    section = raw_section = section.strip()
+    if not section:
+        sys.exit("Empty section name!")
+
+    matches = []
+    # try a simple exact match
+    for section_name in sections:
+        if section_name.lower().startswith(section.lower()):
+            matches.append(section_name)
+    # try a more complex algorithm if we are unlucky
+    matches = matches or _find_smart_matches(section)
 
     if not matches:
         sys.exit(f"Invalid section name: {raw_section!r}\n\n"

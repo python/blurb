@@ -204,14 +204,17 @@ class TestValidSectionNames:
 def test_empty_section_name(section):
     error_message = re.escape('Empty section name!')
     with pytest.raises(SystemExit, match=error_message):
-        blurb._extract_section_name('')
+        blurb._extract_section_name(section)
 
     with pytest.raises(SystemExit, match=error_message):
-        blurb._update_blurb_template(issue=None, section='')
+        blurb._update_blurb_template(issue=None, section=section)
 
 
 @pytest.mark.parametrize('section', [
     # invalid
+    '_',
+    '-',
+    '/',
     'invalid',
     'Not a section',
     # non-special names
