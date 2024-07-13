@@ -940,8 +940,8 @@ def _find_smart_matches(section):
     section_words = re.split(r'\s+', sanitized)
     # ' ' and '/' are the separators used by known sections
     section_pattern = r'[ /]'.join(map(re.escape, section_words))
-
     section_pattern = re.compile(section_pattern, re.I)
+
     for section_name in sections:
         # try to use the input as the pattern to match against known names
         if section_pattern.match(section_name):
@@ -958,13 +958,11 @@ def _find_smart_matches(section):
         # try to use the input as the prefix of a flattened section name
         normalized_prefix = ''.join(section_words).lower()
         for section_name, normalized in _section_names_lower_nosep.items():
-            if (
-                len(normalized_prefix) <= len(normalized) and
-                normalized.startswith(normalized_prefix)
-            ):
+            if normalized.startswith(normalized_prefix):
                 matches.append(section_name)
 
     return matches
+
 
 def _extract_section_name(section):
     if section is None:
