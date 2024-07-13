@@ -130,9 +130,8 @@ Here's how you interact with the file:
   $ blurb add -s lib
   ```
 
-  The known section names are given in the following table. The match
-  is performed casse insensitively and partial matching is supported
-  as long as the match is unique.
+  The match is performed case insensitively and partial matching is
+  supported as long as the match is unique.
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
