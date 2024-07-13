@@ -970,10 +970,10 @@ Use -i/--issue to specify a GitHub issue number or link, e.g.:
 The blurb's section can be specified via -s/--section
 with its name (case insenstitive), e.g.:
 
-    blurb add -s 'Core and Builtins'
+    blurb add -s 'Library'
 
     # or using a partial matching
-    blurb add -s core
+    blurb add -s lib
 
 The known sections names are defined as follows and
 spaces in names can be substituted for underscores:
