@@ -109,12 +109,29 @@ The template for the `blurb add` message looks like this:
 Here's how you interact with the file:
 
 * Add the GitHub issue number for this commit to the
-  end of the `.. gh-issue:` line.
+  end of the `.. gh-issue:` line. The issue can also
+  be specified via the ``-i/--issue`` option:
+
+  ```shell
+  $ blurb add -i 109198
+  # or equivalently
+  $ blurb add -i https://github.com/python/cpython/issues/109198
+  ```
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
-  the `#` at the front of the line.
+  the `#` at the front of the line.  Alternatively, the section can
+  be specified via the ``-s/--section`` option:
+
+  ```shell
+  $ blurb add -s 'Library'
+  # or equivalently
+  $ blurb add -s lib
+  ```
+
+  The match is performed case insensitively and partial matching is
+  supported as long as the match is unique.
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
@@ -224,6 +241,9 @@ part of the cherry-picking process.
 - Loosen README check for CPython forks.
 - Move code from `python/core-workflow` to own `python/blurb` repo.
 - Deploy to PyPI via Trusted Publishers.
+- Add the `-i/--issue` and `-s/--section` options to the `add` command.
+  This lets you pre-fill the `gh-issue` and `section` fields.
+  in the template.
 
 ### 1.1.0
 
