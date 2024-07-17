@@ -20,8 +20,8 @@
 ## 1.1.0
 
 - Support GitHub Issues in addition to b.p.o (bugs.python.org).
-  If "gh-issue" is in the metadata, then the filename will contain
-  "gh-issue-<number>" instead of "bpo-".
+  If `gh-issue` is in the metadata, then the filename will contain
+  `gh-issue-<number>` instead of `bpo-`.
 
 ## 1.0.7
 
