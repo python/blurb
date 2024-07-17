@@ -35,7 +35,7 @@ optional-dependencies.tests = [
   "pytest",
   "pytest-cov",
 ]
-urls.Changelog = "https://github.com/python/blurb/blob/main/README.md#changelog"
+urls.Changelog = "https://github.com/python/blurb/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/python/blurb"
 urls.Source = "https://github.com/python/blurb"
 scripts.blurb = "blurb.blurb:main"
