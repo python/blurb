@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Fix `python3 -m blurb`.
+- Undocument removed `blurb split`.
+
 ## 1.2.0
 
 - Replace spaces with underscores in news directory.
