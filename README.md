@@ -228,7 +228,6 @@ the right thing.  If `NEWS` entries were already written to the
 final version directory, you'd have to move those around as
 part of the cherry-picking process.
 
-
 ## Copyright
 
 **blurb** is Copyright 2015-2018 by Larry Hastings.
