@@ -743,6 +743,15 @@ def get_subcommand(subcommand):
 
 
 @subcommand
+def version():
+    """
+Print blurb version.
+    """
+    print("blurb version", __version__)
+
+
+
+@subcommand
 def help(subcommand=None):
     """
 Print help for subcommands.
@@ -818,6 +827,8 @@ If subcommand is not specified, prints one-line summaries for every command.
 
 # Make "blurb --help" work.
 subcommands["--help"] = help
+subcommands["--version"] = version
+subcommands["-v"] = version
 
 
 @subcommand
@@ -1205,7 +1216,7 @@ def main():
     fn = get_subcommand(subcommand)
 
     # hack
-    if fn in (test, help):
+    if fn in (help, test, version):
         sys.exit(fn(*args))
 
     try:
