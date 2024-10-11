@@ -744,9 +744,7 @@ def get_subcommand(subcommand):
 
 @subcommand
 def version():
-    """
-Print blurb version.
-    """
+    """Print blurb version."""
     print("blurb version", __version__)
 
 
@@ -825,10 +823,10 @@ If subcommand is not specified, prints one-line summaries for every command.
     print(doc)
     sys.exit(0)
 
-# Make "blurb --help" work.
+# Make "blurb --help/--version/-V" work.
 subcommands["--help"] = help
 subcommands["--version"] = version
-subcommands["-v"] = version
+subcommands["-V"] = version
 
 
 @subcommand
