@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+* Add support for Python 3.13 by @hugovk in https://github.com/python/blurb/pull/26
+* Drop support for Python 3.8 by @hugovk in https://github.com/python/blurb/pull/27
+* Generate digital attestations for PyPI (PEP 740) by @hugovk in https://github.com/python/blurb/pull/28
+* Allow running blurb test from blurb-* directories by @hroncok in https://github.com/python/blurb/pull/24
+* Add `version` subcommand by @hugovk in https://github.com/python/blurb/pull/29
+* Generate `__version__` at build to avoid slow `importlib.metadata` import by @hugovk in https://github.com/python/blurb/pull/30
+
 ## 1.2.1
 
 - Fix `python3 -m blurb`.
