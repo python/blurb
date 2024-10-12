@@ -90,3 +90,6 @@ ENV/
 
 # pytest
 .pytest_cache/
+
+# hatch-vcs
+src/*/_version.py
