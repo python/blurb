@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2
+
+- Add the `-i/--issue` and `-s/--section` options to the `add` command.
+  This lets you pre-fill the `gh-issue` and `section` fields in the template.
+
 ## 1.2.1
 
 - Fix `python3 -m blurb`.
