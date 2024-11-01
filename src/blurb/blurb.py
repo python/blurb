@@ -645,7 +645,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 tests_run = 0
 
 class TestParserPasses(unittest.TestCase):
-    directory = "blurb/tests/pass"
+    directory = "tests/pass"
 
     def filename_test(self, filename):
         b = Blurbs()
@@ -670,7 +670,7 @@ class TestParserPasses(unittest.TestCase):
 
 
 class TestParserFailures(TestParserPasses):
-    directory = "blurb/tests/fail"
+    directory = "tests/fail"
 
     def filename_test(self, filename):
         b = Blurbs()
@@ -742,6 +742,13 @@ def get_subcommand(subcommand):
     if not fn:
         error(f"Unknown subcommand: {subcommand}\nRun 'blurb help' for help.")
     return fn
+
+
+
+@subcommand
+def version():
+    """Print blurb version."""
+    print("blurb version", __version__)
 
 
 
@@ -826,8 +833,19 @@ If subcommand is not specified, prints one-line summaries for every command.
     print(doc)
     sys.exit(0)
 
-# Make "blurb --help" work.
+# Make "blurb --help/--version/-V" work.
 subcommands["--help"] = help
+subcommands["--version"] = version
+subcommands["-V"] = version
+
+
+def _find_blurb_dir():
+    if os.path.isdir("blurb"):
+        return "blurb"
+    for path in glob.iglob("blurb-*"):
+        if os.path.isdir(path):
+            return path
+    return None
 
 
 @subcommand
@@ -838,12 +856,13 @@ Run unit tests.  Only works inside source repo, not when installed.
     # unittest.main doesn't work because this isn't a module
     # so we'll do it ourselves
 
-    while not os.path.isdir("blurb"):
+    while (blurb_dir := _find_blurb_dir()) is None:
         old_dir = os.getcwd()
         os.chdir("..")
         if old_dir == os.getcwd():
             # we reached the root and never found it!
             sys.exit("Error: Couldn't find the root of your blurb repo!")
+    os.chdir(blurb_dir)
 
     print("-" * 79)
 
@@ -1379,7 +1398,7 @@ def main():
     fn = get_subcommand(subcommand)
 
     # hack
-    if fn in (test, help):
+    if fn in (help, test, version):
         sys.exit(fn(*args))
 
     try:

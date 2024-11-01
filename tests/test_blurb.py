@@ -186,3 +186,12 @@ def test_extract_next_filename(news_entry, expected_path, fs):
 
     # Assert
     assert path == expected_path
+
+
+def test_version(capfd):
+    # Act
+    blurb.version()
+
+    # Assert
+    captured = capfd.readouterr()
+    assert captured.out.startswith("blurb version ")
