@@ -18,23 +18,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-          cache: pip
 
-      - name: Install dependencies
-        run: |
-          python --version
-          python -m pip install -U pip
-          python -m pip install -U tox
+      - name: Install uv
+        uses: hynek/setup-cached-uv@v2
 
       - name: Tox tests
         run: |
-          tox -e py
+          uvx --with tox-uv tox -e py
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
