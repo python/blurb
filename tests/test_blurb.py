@@ -225,6 +225,10 @@ def test_parse():
             r"Invalid bpo issue number! \('one-two'\)",
         ),
         (
+            "..gh-issue: one-two\n..section: IDLE\nHello world!",
+            r"Invalid GitHub issue number! \('one-two'\)",
+        ),
+        (
             "..gh-issue: 123456\n..section: Funky Kong\nHello world!",
             r"Invalid section 'Funky Kong'!  You must use one of the predefined sections",
         ),

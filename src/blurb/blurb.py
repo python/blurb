@@ -482,14 +482,14 @@ class Blurbs(list):
                 # we'll complain about the *first* error
                 # we see in the blurb file, which is a
                 # better user experience.
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
-
                 if key in issue_keys:
                     try:
                         int(value)
                     except (TypeError, ValueError):
                         throw(f"Invalid {issue_keys[key]} issue number! ({value!r})")
+
+                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
+                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
 
                 if key == "section":
                     if no_changes:
