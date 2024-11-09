@@ -240,6 +240,10 @@ def test_parse():
             ".. gh-issue: 123456\n.. section: IDLE\n.. section: IDLE\nHello world!",
             r"Blurb metadata sets 'section' twice!",
         ),
+        (
+            ".. section: IDLE\nHello world!",
+            r"'gh-issue:' or 'bpo:' must be specified in the metadata!",
+        ),
     ),
 )
 def test_parse_no_body(contents, expected_error):

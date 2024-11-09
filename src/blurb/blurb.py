@@ -497,6 +497,9 @@ class Blurbs(list):
                     if value not in sections:
                         throw(f"Invalid section {value!r}!  You must use one of the predefined sections.")
 
+            if "gh-issue" not in metadata and "bpo" not in metadata:
+                throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
+
             if not 'section' in metadata:
                 throw("No 'section' specified.  You must provide one!")
 
