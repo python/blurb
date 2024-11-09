@@ -217,23 +217,23 @@ def test_parse():
             r"Blurb 'body' can't start with 'gh-'!",
         ),
         (
-            "..gh-issue: 1\n..section: IDLE\nHello world!",
+            ".. gh-issue: 1\n.. section: IDLE\nHello world!",
             r"The gh-issue number must be 32426 or above, not a PR number",
         ),
         (
-            "..bpo: one-two\n..section: IDLE\nHello world!",
+            ".. bpo: one-two\n.. section: IDLE\nHello world!",
             r"Invalid bpo issue number! \('one-two'\)",
         ),
         (
-            "..gh-issue: one-two\n..section: IDLE\nHello world!",
+            ".. gh-issue: one-two\n.. section: IDLE\nHello world!",
             r"Invalid GitHub issue number! \('one-two'\)",
         ),
         (
-            "..gh-issue: 123456\n..section: Funky Kong\nHello world!",
+            ".. gh-issue: 123456\n.. section: Funky Kong\nHello world!",
             r"Invalid section 'Funky Kong'!  You must use one of the predefined sections",
         ),
         (
-            "..gh-issue: 123456\nHello world!",
+            ".. gh-issue: 123456\nHello world!",
             r"No 'section' specified.  You must provide one!",
         ),
         (
