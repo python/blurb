@@ -1,27 +1,28 @@
 import glob
 import os
-import unittest
+
+import pytest
 
 from blurb.blurb import Blurbs, pushd
 
 
-class TestParserPasses(unittest.TestCase):
+class TestParserPasses:
     directory = "tests/pass"
 
     def filename_test(self, filename):
         b = Blurbs()
         b.load(filename)
-        self.assertTrue(b)
+        assert b
         if os.path.exists(filename + ".res"):
             with open(filename + ".res", encoding="utf-8") as file:
                 expected = file.read()
-            self.assertEqual(str(b), expected)
+            assert str(b) == expected
 
     def test_files(self):
         with pushd(self.directory):
             for filename in glob.glob("*"):
-                if filename[-4:] == ".res":
-                    self.assertTrue(os.path.exists(filename[:-4]), filename)
+                if filename.endswith(".res"):
+                    assert os.path.exists(filename[:-4]), filename
                     continue
                 self.filename_test(filename)
 
@@ -31,5 +32,5 @@ class TestParserFailures(TestParserPasses):
 
     def filename_test(self, filename):
         b = Blurbs()
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             b.load(filename)
