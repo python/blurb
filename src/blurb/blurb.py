@@ -57,7 +57,6 @@ import sys
 import tempfile
 import textwrap
 import time
-import unittest
 
 from . import __version__
 
@@ -639,42 +638,6 @@ Broadly equivalent to blurb.parse(open(filename).read()).
         return filename
 
 
-tests_run = 0
-
-class TestParserPasses(unittest.TestCase):
-    directory = "tests/pass"
-
-    def filename_test(self, filename):
-        b = Blurbs()
-        b.load(filename)
-        self.assertTrue(b)
-        if os.path.exists(filename + '.res'):
-            with open(filename + '.res', encoding='utf-8') as file:
-                expected = file.read()
-            self.assertEqual(str(b), expected)
-
-    def test_files(self):
-        global tests_run
-        with pushd(self.directory):
-            for filename in glob.glob("*"):
-                if filename[-4:] == '.res':
-                    self.assertTrue(os.path.exists(filename[:-4]), filename)
-                    continue
-                self.filename_test(filename)
-                print(".", end="")
-                sys.stdout.flush()
-                tests_run += 1
-
-
-class TestParserFailures(TestParserPasses):
-    directory = "tests/fail"
-
-    def filename_test(self, filename):
-        b = Blurbs()
-        with self.assertRaises(Exception):
-            b.load(filename)
-
-
 readme_re = re.compile(r"This is \w+ version \d+\.\d+").match
 
 def chdir_to_repo_root():
@@ -836,36 +799,6 @@ def _find_blurb_dir():
         if os.path.isdir(path):
             return path
     return None
-
-
-@subcommand
-def test(*args):
-    """
-Run unit tests.  Only works inside source repo, not when installed.
-    """
-    # unittest.main doesn't work because this isn't a module
-    # so we'll do it ourselves
-
-    while (blurb_dir := _find_blurb_dir()) is None:
-        old_dir = os.getcwd()
-        os.chdir("..")
-        if old_dir == os.getcwd():
-            # we reached the root and never found it!
-            sys.exit("Error: Couldn't find the root of your blurb repo!")
-    os.chdir(blurb_dir)
-
-    print("-" * 79)
-
-    for clsname, cls in sorted(globals().items()):
-        if clsname.startswith("Test") and isinstance(cls, type):
-            o = cls()
-            for fnname in sorted(dir(o)):
-                if fnname.startswith("test"):
-                    fn = getattr(o, fnname)
-                    if callable(fn):
-                        fn()
-    print()
-    print(tests_run, "tests passed.")
 
 
 def find_editor():
@@ -1224,7 +1157,7 @@ def main():
     fn = get_subcommand(subcommand)
 
     # hack
-    if fn in (help, test, version):
+    if fn in (help, version):
         sys.exit(fn(*args))
 
     try:
