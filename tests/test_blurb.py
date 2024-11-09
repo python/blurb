@@ -1,5 +1,4 @@
 import pytest
-from pyfakefs.fake_filesystem import FakeFilesystem
 
 from blurb import blurb
 
