@@ -482,20 +482,23 @@ class Blurbs(list):
                 # we'll complain about the *first* error
                 # we see in the blurb file, which is a
                 # better user experience.
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
-
                 if key in issue_keys:
                     try:
                         int(value)
                     except (TypeError, ValueError):
-                        throw(f"Invalid {issue_keys[key]} issue number! ({value!r})")
+                        throw(f"Invalid {issue_keys[key]} number: {value!r}")
+
+                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
+                    throw(f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})")
 
                 if key == "section":
                     if no_changes:
                         continue
                     if value not in sections:
                         throw(f"Invalid section {value!r}!  You must use one of the predefined sections.")
+
+            if "gh-issue" not in metadata and "bpo" not in metadata:
+                throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
 
             if not 'section' in metadata:
                 throw("No 'section' specified.  You must provide one!")

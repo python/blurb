@@ -1,5 +1,4 @@
 import pytest
-from pyfakefs.fake_filesystem import FakeFilesystem
 
 from blurb import blurb
 
@@ -188,3 +187,68 @@ def test_version(capfd):
     # Assert
     captured = capfd.readouterr()
     assert captured.out.startswith("blurb version ")
+
+
+def test_parse():
+    # Arrange
+    contents = ".. gh-issue: 123456\n.. section: IDLE\nHello world!"
+    blurbs = blurb.Blurbs()
+
+    # Act
+    blurbs.parse(contents)
+
+    # Assert
+    metadata, body = blurbs[0]
+    assert metadata["gh-issue"] == "123456"
+    assert metadata["section"] == "IDLE"
+    assert body == "Hello world!\n"
+
+
+@pytest.mark.parametrize(
+    "contents, expected_error",
+    (
+        (
+            "",
+            r"Blurb 'body' text must not be empty!",
+        ),
+        (
+            "gh-issue: Hello world!",
+            r"Blurb 'body' can't start with 'gh-'!",
+        ),
+        (
+            ".. gh-issue: 1\n.. section: IDLE\nHello world!",
+            r"Invalid gh-issue number: '1' \(must be >= 32426\)",
+        ),
+        (
+            ".. bpo: one-two\n.. section: IDLE\nHello world!",
+            r"Invalid bpo number: 'one-two'",
+        ),
+        (
+            ".. gh-issue: one-two\n.. section: IDLE\nHello world!",
+            r"Invalid GitHub number: 'one-two'",
+        ),
+        (
+            ".. gh-issue: 123456\n.. section: Funky Kong\nHello world!",
+            r"Invalid section 'Funky Kong'!  You must use one of the predefined sections",
+        ),
+        (
+            ".. gh-issue: 123456\nHello world!",
+            r"No 'section' specified.  You must provide one!",
+        ),
+        (
+            ".. gh-issue: 123456\n.. section: IDLE\n.. section: IDLE\nHello world!",
+            r"Blurb metadata sets 'section' twice!",
+        ),
+        (
+            ".. section: IDLE\nHello world!",
+            r"'gh-issue:' or 'bpo:' must be specified in the metadata!",
+        ),
+    ),
+)
+def test_parse_no_body(contents, expected_error):
+    # Arrange
+    blurbs = blurb.Blurbs()
+
+    # Act / Assert
+    with pytest.raises(blurb.BlurbError, match=expected_error):
+        blurbs.parse(contents)
