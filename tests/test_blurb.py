@@ -217,15 +217,15 @@ def test_parse():
         ),
         (
             ".. gh-issue: 1\n.. section: IDLE\nHello world!",
-            r"The gh-issue number must be 32426 or above, not a PR number",
+            r"Invalid gh-issue number: '1' \(must be >= 32426\)",
         ),
         (
             ".. bpo: one-two\n.. section: IDLE\nHello world!",
-            r"Invalid bpo issue number! \('one-two'\)",
+            r"Invalid bpo number: 'one-two'",
         ),
         (
             ".. gh-issue: one-two\n.. section: IDLE\nHello world!",
-            r"Invalid GitHub issue number! \('one-two'\)",
+            r"Invalid GitHub number: 'one-two'",
         ),
         (
             ".. gh-issue: 123456\n.. section: Funky Kong\nHello world!",

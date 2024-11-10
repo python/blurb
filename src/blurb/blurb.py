@@ -486,10 +486,10 @@ class Blurbs(list):
                     try:
                         int(value)
                     except (TypeError, ValueError):
-                        throw(f"Invalid {issue_keys[key]} issue number! ({value!r})")
+                        throw(f"Invalid {issue_keys[key]} number: {value!r}")
 
                 if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
+                    throw(f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})")
 
                 if key == "section":
                     if no_changes:
