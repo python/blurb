@@ -268,11 +268,6 @@ class pushd:
         os.chdir(self.previous_cwd)
 
 
-def safe_mkdir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
 def version_key(element):
     fields = list(element.split("."))
     if len(fields) == 1:
@@ -560,7 +555,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 
     def save(self, path):
         dirname = os.path.dirname(path)
-        safe_mkdir(dirname)
+        os.makedirs(dirname, exist_ok=True)
 
         text = str(self)
         with open(path, "wt", encoding="utf-8") as file:
@@ -1178,12 +1173,12 @@ def populate():
 Creates and populates the Misc/NEWS.d directory tree.
     """
     os.chdir("Misc")
-    safe_mkdir("NEWS.d/next")
+    os.makedirs("NEWS.d/next", exist_ok=True)
 
     for section in sections:
         dir_name = sanitize_section(section)
         dir_path = f"NEWS.d/next/{dir_name}"
-        safe_mkdir(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
         readme_path = f"NEWS.d/next/{dir_name}/README.rst"
         with open(readme_path, "wt", encoding="utf-8") as readme:
             readme.write(f"Put news entry ``blurb`` files for the *{section}* section in this directory.\n")
