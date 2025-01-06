@@ -50,4 +50,4 @@ version-file = "src/blurb/_version.py"
 local_scheme = "no-local-version"
 
 [tool.pyproject-fmt]
-max_supported_python = "3.13"
+max_supported_python = "3.14"
