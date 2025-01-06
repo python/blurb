@@ -65,6 +65,9 @@ from . import __version__
 # This template is the canonical list of acceptable section names!
 # It's parsed internally into the "sections" set.
 #
+# Do not forget to update the example for the 'add' command if
+# the section names change as well as the corresponding tests.
+#
 
 template = """
 
@@ -767,7 +770,14 @@ If subcommand is not specified, prints one-line summaries for every command.
     for name, p in inspect.signature(fn).parameters.items():
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
             short_option = name[0]
-            options.append(f" [-{short_option}|--{name}]")
+            if isinstance(p.default, bool):
+                options.append(f" [-{short_option}|--{name}]")
+            else:
+                if p.default is None:
+                    metavar = f'{name.upper()}'
+                else:
+                    metavar = f'{name.upper()}[={p.default}]'
+                options.append(f" [-{short_option}|--{name} {metavar}]")
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             positionals.append(" ")
             has_default = (p.default != inspect._empty)
@@ -818,10 +828,175 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
+def _extract_issue_number(issue):
+    if issue is None:
+        return None
+
+    issue = raw_issue = str(issue).strip()
+    if issue.startswith('gh-'):
+        issue = issue[3:]
+    if issue.isdigit():
+        return issue
+
+    match = re.match(r'^(?:https://)?github\.com/python/cpython/issues/(\d+)$', issue)
+    if match is None:
+        sys.exit(f"Invalid GitHub issue: {raw_issue}")
+    return match.group(1)
+
+
+# Mapping from section names to additional allowed patterns
+# which ignore whitespaces for composed section names.
+#
+# For instance, 'Core and Builtins' is represented by the
+# pattern 'Core<SEP>?and<SEP>?Builtins' where <SEP> are the
+# allowed user separators '_', '-', ' ' and '/'.
+_section_special_patterns = {__: set() for __ in sections}
+
+# Mapping from section names to sanitized names (no separators, lowercase).
+#
+# For instance, 'Core and Builtins' is mapped to 'coreandbuiltins', and
+# passing a prefix of that would match to 'Core and Builtins'. Note that
+# this is only used as a last resort.
+_section_names_lower_nosep = {}
+
+for _section in sections:
+    # ' ' and '/' are the separators used by known sections
+    _sanitized = re.sub(r'[ /]', ' ', _section)
+    _section_words = re.split(r'\s+', _sanitized)
+    _section_names_lower_nosep[_section] = ''.join(_section_words).lower()
+    del _sanitized
+    # '_', '-', ' ' and '/' are the allowed (user) separators
+    _section_pattern = r'[_\- /]?'.join(map(re.escape, _section_words))
+    # add '$' to avoid matching after the pattern
+    _section_pattern = f'{_section_pattern}$'
+    del _section_words
+    _section_pattern = re.compile(_section_pattern, re.I)
+    _section_special_patterns[_section].add(_section_pattern)
+    del _section_pattern, _section
+
+# the following statements will raise KeyError if the names are invalid
+_section_special_patterns['C API'].add(re.compile(r'^((?<=c)[_\- /])?api$', re.I))
+_section_special_patterns['Core and Builtins'].add(re.compile('^builtins?$', re.I))
+_section_special_patterns['Tools/Demos'].add(re.compile('^dem(?:o|os)?$', re.I))
+
+
+def _find_smart_matches(section):
+    # '_', '-' and ' ' are the allowed (user) whitespace separators
+    sanitized = re.sub(r'[_\- ]', ' ', section).strip()
+    if not sanitized:
+        return []
+
+    matches = []
+    section_words = re.split(r'\s+', sanitized)
+    # ' ' and '/' are the separators used by known sections
+    section_pattern = r'[ /]'.join(map(re.escape, section_words))
+    section_pattern = re.compile(section_pattern, re.I)
+
+    for section_name in sections:
+        # try to use the input as the pattern to match against known names
+        if section_pattern.match(section_name):
+            matches.append(section_name)
+
+    if not matches:
+        for section_name, special_patterns in _section_special_patterns.items():
+            for special_pattern in special_patterns:
+                if special_pattern.match(sanitized):
+                    matches.append(section_name)
+                    break
+
+    if not matches:
+        # try to use the input as the prefix of a flattened section name
+        normalized_prefix = ''.join(section_words).lower()
+        for section_name, normalized in _section_names_lower_nosep.items():
+            if normalized.startswith(normalized_prefix):
+                matches.append(section_name)
+
+    return matches
+
+
+def _extract_section_name(section):
+    if section is None:
+        return None
+
+    section = raw_section = section.strip()
+    if not section:
+        sys.exit("Empty section name!")
+
+    matches = []
+    # try a simple exact match
+    for section_name in sections:
+        if section_name.lower().startswith(section.lower()):
+            matches.append(section_name)
+    # try a more complex algorithm if we are unlucky
+    matches = matches or _find_smart_matches(section)
+
+    if not matches:
+        sys.exit(f"Invalid section name: {raw_section!r}\n\n"
+                 f"Choose from the following table:\n\n"
+                 f'{sections_table}')
+
+    if len(matches) > 1:
+        multiple_matches = ', '.join(map(repr, sorted(matches)))
+        sys.exit(f"More than one match for: {raw_section!r}\n"
+                 f"Matches: {multiple_matches}")
+
+    return matches[0]
+
+
+def _update_blurb_template(issue, section):
+    issue_number = _extract_issue_number(issue)
+    section_name = _extract_section_name(section)
+
+    # Ensure that a whitespace is given after 'gh-issue:'
+    # to help filling up the template, unless an issue
+    # number was manually specified via the CLI.
+    text = template
+
+    issue_line = ".. gh-issue:"
+    pattern = "\n" + issue_line + "\n"
+    if issue_number is None:
+        if pattern not in text:
+            sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
+        replacement = "\n" + issue_line + " \n"
+    else:
+        if pattern not in text:
+            sys.exit("Can't find gh-issue line to fill!")
+        replacement = "\n" + issue_line + " " + str(issue_number) + "\n"
+
+    text = text.replace(pattern, replacement)
+
+    # Uncomment the section if needed.
+    if section_name is not None:
+        pattern = f'#.. section: {section_name}'
+        text = text.replace(pattern, pattern.lstrip('#'))
+
+    return text
+
+
 @subcommand
-def add():
+def add(*, issue=None, section=None):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+
+Use -i/--issue to specify a GitHub issue number or link, e.g.:
+
+    blurb add -i 109198
+
+    # or equivalently
+    blurb add -i https://github.com/python/cpython/issues/109198
+
+The blurb's section can be specified via -s/--section
+with its name (case insenstitive), e.g.:
+
+    blurb add -s 'Library'
+
+    # or using a partial matching
+    blurb add -s lib
+
+The known sections names are defined as follows and
+spaces in names can be substituted for underscores:
+
+{sections}
     """
 
     editor = find_editor()
@@ -832,20 +1007,8 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 
     def init_tmp_with_template():
         with open(tmp_path, "wt", encoding="utf-8") as file:
-            # hack:
-            # my editor likes to strip trailing whitespace from lines.
-            # normally this is a good idea.  but in the case of the template
-            # it's unhelpful.
-            # so, manually ensure there's a space at the end of the gh-issue line.
-            text = template
-
-            issue_line = ".. gh-issue:"
-            without_space = "\n" + issue_line + "\n"
-            with_space = "\n" + issue_line + " \n"
-            if without_space not in text:
-                sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-            text = text.replace(without_space, with_space)
-            file.write(text)
+            updated = _update_blurb_template(issue, section)
+            file.write(updated)
 
     init_tmp_with_template()
 
@@ -895,6 +1058,17 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     flush_git_add_files()
     print("Ready for commit.")
 
+
+assert sections, 'sections is empty'
+_sec_name_width = 2 + max(map(len, sections))
+_sec_row_rule = '+'.join(['',  '-' * _sec_name_width, ''])
+_format_row = (f'| {{:{_sec_name_width - 2:d}}} |').format
+del _sec_name_width
+sections_table = '\n'.join(map(_format_row, sections))
+del _format_row
+sections_table = '\n'.join((_sec_row_rule, sections_table, _sec_row_rule))
+del _sec_row_rule
+add.__doc__ = add.__doc__.format(sections=sections_table)
 
 
 @subcommand
@@ -1170,25 +1344,39 @@ def main():
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                assert p.default is None or isinstance(p.default, (bool, str)), \
+                    "blurb command-line processing only handles boolean options"
                 kwargs[name] = p.default
                 short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []
         done_with_options = False
+        consume_after = None
 
         def handle_option(s, dict):
+            nonlocal consume_after
             name = dict.get(s, None)
             if not name:
                 sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
+
+            value = kwargs[name]
+            if isinstance(value, bool):
+                kwargs[name] = not value
+            else:
+                consume_after = name
 
         # print(f"short_options {short_options} long_options {long_options}")
         for a in args:
+            if consume_after:
+                kwargs[consume_after] = a
+                consume_after = None
+                continue
+
             if done_with_options:
                 filtered_args.append(a)
                 continue
+
             if a.startswith('-'):
                 if a == "--":
                     done_with_options = True
@@ -1198,8 +1386,12 @@ def main():
                     for s in a[1:]:
                         handle_option(s, short_options)
                 continue
+
             filtered_args.append(a)
 
+        if consume_after:
+            sys.exit(f"Error: blurb: {subcommand} {consume_after} "
+                     f"must be followed by an option argument")
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
