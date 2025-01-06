@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
-__version__ = "1.1.0"
-
 ##
-## blurb version 1.0
 ## Part of the blurb package.
 ## Copyright 2015-2018 by Larry Hastings
 ##
@@ -61,6 +58,8 @@ import tempfile
 import textwrap
 import time
 import unittest
+
+from . import __version__
 
 
 #
@@ -267,11 +266,6 @@ class pushd:
 
     def __exit__(self, *args):
         os.chdir(self.previous_cwd)
-
-
-def safe_mkdir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 
 def version_key(element):
@@ -483,20 +477,23 @@ class Blurbs(list):
                 # we'll complain about the *first* error
                 # we see in the blurb file, which is a
                 # better user experience.
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
-
                 if key in issue_keys:
                     try:
                         int(value)
                     except (TypeError, ValueError):
-                        throw(f"Invalid {issue_keys[key]} issue number! ({value!r})")
+                        throw(f"Invalid {issue_keys[key]} number: {value!r}")
+
+                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
+                    throw(f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})")
 
                 if key == "section":
                     if no_changes:
                         continue
                     if value not in sections:
                         throw(f"Invalid section {value!r}!  You must use one of the predefined sections.")
+
+            if "gh-issue" not in metadata and "bpo" not in metadata:
+                throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
 
             if not 'section' in metadata:
                 throw("No 'section' specified.  You must provide one!")
@@ -558,7 +555,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 
     def save(self, path):
         dirname = os.path.dirname(path)
-        safe_mkdir(dirname)
+        os.makedirs(dirname, exist_ok=True)
 
         text = str(self)
         with open(path, "wt", encoding="utf-8") as file:
@@ -643,7 +640,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 tests_run = 0
 
 class TestParserPasses(unittest.TestCase):
-    directory = "blurb/tests/pass"
+    directory = "tests/pass"
 
     def filename_test(self, filename):
         b = Blurbs()
@@ -668,7 +665,7 @@ class TestParserPasses(unittest.TestCase):
 
 
 class TestParserFailures(TestParserPasses):
-    directory = "blurb/tests/fail"
+    directory = "tests/fail"
 
     def filename_test(self, filename):
         b = Blurbs()
@@ -740,6 +737,13 @@ def get_subcommand(subcommand):
     if not fn:
         error(f"Unknown subcommand: {subcommand}\nRun 'blurb help' for help.")
     return fn
+
+
+
+@subcommand
+def version():
+    """Print blurb version."""
+    print("blurb version", __version__)
 
 
 
@@ -817,8 +821,19 @@ If subcommand is not specified, prints one-line summaries for every command.
     print(doc)
     sys.exit(0)
 
-# Make "blurb --help" work.
+# Make "blurb --help/--version/-V" work.
 subcommands["--help"] = help
+subcommands["--version"] = version
+subcommands["-V"] = version
+
+
+def _find_blurb_dir():
+    if os.path.isdir("blurb"):
+        return "blurb"
+    for path in glob.iglob("blurb-*"):
+        if os.path.isdir(path):
+            return path
+    return None
 
 
 @subcommand
@@ -829,12 +844,13 @@ Run unit tests.  Only works inside source repo, not when installed.
     # unittest.main doesn't work because this isn't a module
     # so we'll do it ourselves
 
-    while not os.path.isdir("blurb"):
+    while (blurb_dir := _find_blurb_dir()) is None:
         old_dir = os.getcwd()
         os.chdir("..")
         if old_dir == os.getcwd():
             # we reached the root and never found it!
             sys.exit("Error: Couldn't find the root of your blurb repo!")
+    os.chdir(blurb_dir)
 
     print("-" * 79)
 
@@ -1157,12 +1173,12 @@ def populate():
 Creates and populates the Misc/NEWS.d directory tree.
     """
     os.chdir("Misc")
-    safe_mkdir("NEWS.d/next")
+    os.makedirs("NEWS.d/next", exist_ok=True)
 
     for section in sections:
         dir_name = sanitize_section(section)
         dir_path = f"NEWS.d/next/{dir_name}"
-        safe_mkdir(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
         readme_path = f"NEWS.d/next/{dir_name}/README.rst"
         with open(readme_path, "wt", encoding="utf-8") as readme:
             readme.write(f"Put news entry ``blurb`` files for the *{section}* section in this directory.\n")
@@ -1206,7 +1222,7 @@ def main():
     fn = get_subcommand(subcommand)
 
     # hack
-    if fn in (test, help):
+    if fn in (help, test, version):
         sys.exit(fn(*args))
 
     try:

@@ -26,8 +26,6 @@ and automatically uses the correct file paths.
 You can install **blurb** from PyPI using `pip`.  Alternatively,
 simply add `blurb` to a directory on your path.
 
-**blurb**'s only dependency is Python 3.8+.
-
 
 ## Files used by blurb
 
@@ -191,32 +189,6 @@ uses the name of the directory CPython is checked out to.
 version I'm releasing, and using this shortcut saves me some typing.)
 
 
-### blurb split
-
-`blurb split` only needs to be run once per-branch, ever.
-It reads in `Misc/NEWS`
-and splits it into individual `.rst` files.
-The text files are stored as follows::
-
-    Misc/NEWS.d/<version>.rst
-
-`<version>` is the version number of Python where the
-change was committed.  Pre-release versions are denoted
-with an abbreviation: `a` for alphas, `b` for betas,
-and `rc` for release candidates.
-
-The individual `<version>.rst` files actually (usually)
-contain multiple entries.  Each entry is delimited by a
-single line containing `..` by itself.
-
-The assumption is, at the point we convert over to *blurb*,
-we'll run `blurb split` on each active branch,
-remove `Misc/NEWS` from the repo entirely,
-never run `blurb split` ever again,
-and ride off into the sunset, confident that the world is now
-a better place.
-
-
 
 ## The "next" directory
 
@@ -237,24 +209,11 @@ the right thing.  If `NEWS` entries were already written to the
 final version directory, you'd have to move those around as
 part of the cherry-picking process.
 
-## Changelog
-
-### 1.1.0
-
-- Support GitHub Issues in addition to b.p.o (bugs.python.org).
-  If "gh-issue" is in the metadata, then the filename will contain
-  "gh-issue-<number>" instead of "bpo-".
-
-### 1.0.7
-
-- When word wrapping, don't break on long words or hyphens.
-- Use the `-f` flag when adding **blurb** files to a Git
-  commit.  This forces them to be added, even when the files
-  might normally be ignored based on a `.gitignore` directive.
-- Explicitly support the `-help` command-line option.
-- Fix Travis CI integration.
-
 ## Copyright
 
 **blurb** is Copyright 2015-2018 by Larry Hastings.
 Licensed to the PSF under a contributor agreement.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
