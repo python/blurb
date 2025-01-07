@@ -1,4 +1,5 @@
 import pytest
+import time_machine
 
 from blurb import blurb
 
@@ -174,6 +175,33 @@ def test_glob_blurbs_sort_order(fs):
 def test_printable_version(version, expected):
     # Act / Assert
     assert blurb.printable_version(version) == expected
+
+
+@time_machine.travel("2025-01-07 16:28:41")
+@pytest.mark.parametrize(
+    "date, expected",
+    (
+        (
+            "2025-02-27-01-12-11",
+            "Misc/NEWS.d/Library/2025-02-27-01-12-11.gh-issue-123456.hvsmnR.rst",
+        ),
+        (
+            None,
+            "Misc/NEWS.d/Library/2025-01-07-16-28-41.gh-issue-123456.hvsmnR.rst",
+        ),
+    ),
+)
+def test_format_blurb_filename(date, expected):
+    # Arrange
+    gh_issue = "123456"
+    section = "Library"
+    body = "Hello world!"
+
+    # Act
+    filename = blurb.format_blurb_filename(section, gh_issue, body, date)
+
+    # Assert
+    assert filename == expected
 
 
 @pytest.mark.parametrize(

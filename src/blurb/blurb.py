@@ -346,6 +346,12 @@ def printable_version(version):
     return version + " final"
 
 
+def format_blurb_filename(section, gh_issue, body, date=None):
+    if date is None:
+        date = sortable_datetime()
+    return f"Misc/NEWS.d/{section}/{date}.gh-issue-{gh_issue}.{nonceify(body)}.rst"
+
+
 class BlurbError(RuntimeError):
     pass
 
