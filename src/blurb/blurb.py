@@ -493,7 +493,7 @@ class Blurbs(list):
             if "gh-issue" not in metadata and "bpo" not in metadata:
                 throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
 
-            if not 'section' in metadata:
+            if 'section' not in metadata:
                 throw("No 'section' specified.  You must provide one!")
 
             self.append((metadata, text))
