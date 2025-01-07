@@ -139,7 +139,6 @@ def unsanitize_section(section):
     return _unsanitize_section.get(section, section)
 
 def next_filename_unsanitize_sections(filename):
-    s = filename
     for key, value in _unsanitize_section.items():
         for separator in "/\\":
             key = f"{separator}{key}{separator}"
