@@ -139,7 +139,6 @@ def unsanitize_section(section):
     return _unsanitize_section.get(section, section)
 
 def next_filename_unsanitize_sections(filename):
-    s = filename
     for key, value in _unsanitize_section.items():
         for separator in "/\\":
             key = f"{separator}{key}{separator}"
@@ -494,7 +493,7 @@ class Blurbs(list):
             if "gh-issue" not in metadata and "bpo" not in metadata:
                 throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
 
-            if not 'section' in metadata:
+            if 'section' not in metadata:
                 throw("No 'section' specified.  You must provide one!")
 
             self.append((metadata, text))
