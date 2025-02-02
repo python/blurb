@@ -399,7 +399,7 @@ Format of the BODY section:
     (This formatting will be inserted when rendering the final output.)
   * Lines longer than 76 characters will be wordwrapped.
       * In the final output, the first line will have
-        "- gh-issue-<gh-issue-number>: " inserted at the front,
+        "- :gh:`<gh-issue-number>`: " inserted at the front,
         and subsequent lines will have two spaces inserted
         at the front.
 
@@ -989,13 +989,6 @@ def write_news(output, *, versions):
         s = sep.join(str(x) for x in a)
         return builtins.print(s, file=buff)
 
-    print ("""
-+++++++++++
-Python News
-+++++++++++
-
-""".strip())
-
     for version in versions:
         filenames = glob_blurbs(version)
 
@@ -1013,7 +1006,7 @@ Python News
             assert len(filenames) == 1
             blurbs.load(filenames[0])
 
-        header = "What's New in Python " + printable_version(version) + "?"
+        header = printable_version(version)
         print()
         print(header)
         print("=" * len(header))
@@ -1042,14 +1035,13 @@ Python News
             if metadata.get("gh-issue"):
                 issue_number = metadata['gh-issue']
                 if int(issue_number):
-                    body = "gh-" + issue_number + ": " + body
+                    body = f":gh:`{issue_number}`: {body}"
             elif metadata.get("bpo"):
                 issue_number = metadata['bpo']
                 if int(issue_number):
-                    body = "bpo-" + issue_number + ": " + body
+                    body = f":issue:`{issue_number}`: {body}"
 
-            body = "- " + body
-            text = textwrap_body(body, subsequent_indent='  ')
+            text = textwrap_body(f"- {body}", subsequent_indent='  ')
             print(text)
     print()
     print("**(For information about older versions, consult the HISTORY file.)**")
