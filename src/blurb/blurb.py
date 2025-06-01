@@ -1371,11 +1371,9 @@ def main():
                 kwargs[consume_after] = a
                 consume_after = None
                 continue
-
             if done_with_options:
                 filtered_args.append(a)
                 continue
-
             if a.startswith('-'):
                 if a == "--":
                     done_with_options = True
@@ -1385,7 +1383,6 @@ def main():
                     for s in a[1:]:
                         handle_option(s, short_options)
                 continue
-
             filtered_args.append(a)
 
         if consume_after:
