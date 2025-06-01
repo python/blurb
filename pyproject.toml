@@ -25,6 +25,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 dynamic = [
   "version",
@@ -33,6 +34,7 @@ optional-dependencies.tests = [
   "pyfakefs",
   "pytest",
   "pytest-cov",
+  "time-machine",
 ]
 urls.Changelog = "https://github.com/python/blurb/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/python/blurb"
@@ -49,4 +51,4 @@ version-file = "src/blurb/_version.py"
 local_scheme = "no-local-version"
 
 [tool.pyproject-fmt]
-max_supported_python = "3.13"
+max_supported_python = "3.14"

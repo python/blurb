@@ -10,3 +10,4 @@ exclude_also =
 [run]
 omit =
     **/blurb/__main__.py
+    **/blurb/_version.py

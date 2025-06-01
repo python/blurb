@@ -57,7 +57,6 @@ import sys
 import tempfile
 import textwrap
 import time
-import unittest
 
 from . import __version__
 
@@ -143,7 +142,6 @@ def unsanitize_section(section):
     return _unsanitize_section.get(section, section)
 
 def next_filename_unsanitize_sections(filename):
-    s = filename
     for key, value in _unsanitize_section.items():
         for separator in "/\\":
             key = f"{separator}{key}{separator}"
@@ -269,11 +267,6 @@ class pushd:
 
     def __exit__(self, *args):
         os.chdir(self.previous_cwd)
-
-
-def safe_mkdir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 
 def version_key(element):
@@ -485,14 +478,14 @@ class Blurbs(list):
                 # we'll complain about the *first* error
                 # we see in the blurb file, which is a
                 # better user experience.
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"The gh-issue number must be {lowest_possible_gh_issue_number} or above, not a PR number.")
-
                 if key in issue_keys:
                     try:
                         int(value)
                     except (TypeError, ValueError):
-                        throw(f"Invalid {issue_keys[key]} issue number! ({value!r})")
+                        throw(f"Invalid {issue_keys[key]} number: {value!r}")
+
+                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
+                    throw(f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})")
 
                 if key == "section":
                     if no_changes:
@@ -500,7 +493,10 @@ class Blurbs(list):
                     if value not in sections:
                         throw(f"Invalid section {value!r}!  You must use one of the predefined sections.")
 
-            if not 'section' in metadata:
+            if "gh-issue" not in metadata and "bpo" not in metadata:
+                throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
+
+            if 'section' not in metadata:
                 throw("No 'section' specified.  You must provide one!")
 
             self.append((metadata, text))
@@ -560,7 +556,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 
     def save(self, path):
         dirname = os.path.dirname(path)
-        safe_mkdir(dirname)
+        os.makedirs(dirname, exist_ok=True)
 
         text = str(self)
         with open(path, "wt", encoding="utf-8") as file:
@@ -640,42 +636,6 @@ Broadly equivalent to blurb.parse(open(filename).read()).
         filename = blurb._extract_next_filename()
         blurb.save(filename)
         return filename
-
-
-tests_run = 0
-
-class TestParserPasses(unittest.TestCase):
-    directory = "tests/pass"
-
-    def filename_test(self, filename):
-        b = Blurbs()
-        b.load(filename)
-        self.assertTrue(b)
-        if os.path.exists(filename + '.res'):
-            with open(filename + '.res', encoding='utf-8') as file:
-                expected = file.read()
-            self.assertEqual(str(b), expected)
-
-    def test_files(self):
-        global tests_run
-        with pushd(self.directory):
-            for filename in glob.glob("*"):
-                if filename[-4:] == '.res':
-                    self.assertTrue(os.path.exists(filename[:-4]), filename)
-                    continue
-                self.filename_test(filename)
-                print(".", end="")
-                sys.stdout.flush()
-                tests_run += 1
-
-
-class TestParserFailures(TestParserPasses):
-    directory = "tests/fail"
-
-    def filename_test(self, filename):
-        b = Blurbs()
-        with self.assertRaises(Exception):
-            b.load(filename)
 
 
 readme_re = re.compile(r"This is \w+ version \d+\.\d+").match
@@ -846,36 +806,6 @@ def _find_blurb_dir():
         if os.path.isdir(path):
             return path
     return None
-
-
-@subcommand
-def test(*args):
-    """
-Run unit tests.  Only works inside source repo, not when installed.
-    """
-    # unittest.main doesn't work because this isn't a module
-    # so we'll do it ourselves
-
-    while (blurb_dir := _find_blurb_dir()) is None:
-        old_dir = os.getcwd()
-        os.chdir("..")
-        if old_dir == os.getcwd():
-            # we reached the root and never found it!
-            sys.exit("Error: Couldn't find the root of your blurb repo!")
-    os.chdir(blurb_dir)
-
-    print("-" * 79)
-
-    for clsname, cls in sorted(globals().items()):
-        if clsname.startswith("Test") and isinstance(cls, type):
-            o = cls()
-            for fnname in sorted(dir(o)):
-                if fnname.startswith("test"):
-                    fn = getattr(o, fnname)
-                    if callable(fn):
-                        fn()
-    print()
-    print(tests_run, "tests passed.")
 
 
 def find_editor():
@@ -1349,12 +1279,12 @@ def populate():
 Creates and populates the Misc/NEWS.d directory tree.
     """
     os.chdir("Misc")
-    safe_mkdir("NEWS.d/next")
+    os.makedirs("NEWS.d/next", exist_ok=True)
 
     for section in sections:
         dir_name = sanitize_section(section)
         dir_path = f"NEWS.d/next/{dir_name}"
-        safe_mkdir(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
         readme_path = f"NEWS.d/next/{dir_name}/README.rst"
         with open(readme_path, "wt", encoding="utf-8") as readme:
             readme.write(f"Put news entry ``blurb`` files for the *{section}* section in this directory.\n")
@@ -1398,7 +1328,7 @@ def main():
     fn = get_subcommand(subcommand)
 
     # hack
-    if fn in (help, test, version):
+    if fn in (help, version):
         sys.exit(fn(*args))
 
     try:

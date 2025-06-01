@@ -1,10 +1,19 @@
 # Changelog
 
-## 1.3.1
+## 2.1.0
 
 - Add the `-i/--issue` and `-s/--section` options to the `add` command.
   This lets you pre-fill the `gh-issue` and `section` fields in the template.
   Added by @picnixz in https://github.com/python/blurb/pull/16.
+
+## 2.0.0
+
+* Move 'blurb test' subcommand into test suite by @hugovk in https://github.com/python/blurb/pull/37
+* Add support for Python 3.14 by @ezio-melotti in https://github.com/python/blurb/pull/40
+* Validate gh-issue is int before checking range, and that gh-issue or bpo exists by @hugovk in https://github.com/python/blurb/pull/35
+* Replace `safe_mkdir(path)` with `os.makedirs(path, exist_ok=True)` by @hugovk in https://github.com/python/blurb/pull/38
+* Test version handling functions by @hugovk in https://github.com/python/blurb/pull/36
+* CI: Lint and test via uv by @hugovk in https://github.com/python/blurb/pull/32
 
 ## 1.3.0
 
