@@ -35,9 +35,6 @@
 ## Licensed to the Python Software Foundation under a contributor agreement.
 ##
 
-# TODO
-#
-# automatic git adds and removes
 
 import atexit
 import base64
@@ -45,7 +42,6 @@ import builtins
 import glob
 import hashlib
 import io
-import inspect
 import itertools
 import os
 from pathlib import Path
@@ -57,9 +53,14 @@ import sys
 import tempfile
 import textwrap
 import time
+from typing import Optional, Annotated
+
+from cyclopts import App, Parameter
 
 from . import __version__
 
+
+LOWEST_POSSIBLE_GH_ISSUE_NUMBER = 32426
 
 #
 # This template is the canonical list of acceptable section names!
@@ -97,16 +98,13 @@ template = """
 
 """.lstrip()
 
-root = None
-original_dir = None
-SECTIONS = []
-
-for line in template.split('\n'):
-    line = line.strip()
-    prefix, found, section = line.partition("#.. section: ")
-    if found and not prefix:
-        SECTIONS.append(section.strip())
-    SECTIONS = sorted(SECTIONS)
+root = None  # Set by chdir_to_repo_root()
+original_dir = None  # Set by main()
+SECTIONS = sorted([
+    line.partition("#.. section: ")[2].strip()
+    for line in template.split('\n')
+    if line.strip().startswith("#.. section: ")
+])
 
 
 _sanitize_section = {
@@ -462,8 +460,6 @@ class Blurbs(list):
 
             no_changes = metadata.get('no changes')
 
-            lowest_possible_gh_issue_number = 32426
-
             issue_keys = {
                 'gh-issue': 'GitHub',
                 'bpo': 'bpo',
@@ -483,8 +479,8 @@ class Blurbs(list):
                     except (TypeError, ValueError):
                         throw(f"Invalid {issue_keys[key]} number: {value!r}")
 
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
-                    throw(f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})")
+                if key == "gh-issue" and int(value) < LOWEST_POSSIBLE_GH_ISSUE_NUMBER:
+                    throw(f"Invalid gh-issue number: {value!r} (must be >= {LOWEST_POSSIBLE_GH_ISSUE_NUMBER})")
 
                 if key == "section":
                     if no_changes:
@@ -688,107 +684,39 @@ def error(*a):
     sys.exit("Error: " + s)
 
 
-subcommands = {}
-
-def subcommand(fn):
-    global subcommands
-    name = fn.__name__
-    subcommands[name] = fn
-    return fn
-
-def get_subcommand(subcommand):
-    fn = subcommands.get(subcommand)
-    if not fn:
-        error(f"Unknown subcommand: {subcommand}\nRun 'blurb help' for help.")
-    return fn
+app = App(
+    help="Management tool for CPython Misc/NEWS and Misc/NEWS.d entries.",
+    version_flags=["--version", "-V"],
+    version=f"blurb version {__version__}",
+)
 
 
 
-@subcommand
+
+@app.command(name="version")
 def version():
     """Print blurb version."""
     print("blurb version", __version__)
 
 
 
-@subcommand
-def help(subcommand=None):
+@app.command(name="help")
+def help(subcommand: Optional[str] = None):
+    """Print help for subcommands.
+
+    Parameters
+    ----------
+    subcommand : str, optional
+        Subcommand to get help for. If not specified, shows all commands.
     """
-Print help for subcommands.
 
-Prints the help text for the specified subcommand.
-If subcommand is not specified, prints one-line summaries for every command.
-    """
+    if subcommand:
+        # Show help for specific subcommand
+        app([subcommand, "--help"])
+    else:
+        # Show overall help
+        app(["--help"])
 
-    if not subcommand:
-        print("blurb version", __version__)
-        print()
-        print("Management tool for CPython Misc/NEWS and Misc/NEWS.d entries.")
-        print()
-        print("Usage:")
-        print("    blurb [subcommand] [options...]")
-        print()
-
-        # print list of subcommands
-        summaries = []
-        longest_name_len = -1
-        for name, fn in subcommands.items():
-            if name.startswith('-'):
-                continue
-            longest_name_len = max(longest_name_len, len(name))
-            if not fn.__doc__:
-                error("help is broken, no docstring for " + fn.__name__)
-            fields = fn.__doc__.lstrip().split("\n")
-            if not fields:
-                first_line = "(no help available)"
-            else:
-                first_line = fields[0]
-            summaries.append((name, first_line))
-        summaries.sort()
-
-        print("Available subcommands:")
-        print()
-        for name, summary in summaries:
-            print(" ", name.ljust(longest_name_len), " ", summary)
-
-        print()
-        print("If blurb is run without any arguments, this is equivalent to 'blurb add'.")
-
-        sys.exit(0)
-
-    fn = get_subcommand(subcommand)
-    doc = fn.__doc__.strip()
-    if not doc:
-        error("help is broken, no docstring for " + subcommand)
-
-    options = []
-    positionals = []
-
-    nesting = 0
-    for name, p in inspect.signature(fn).parameters.items():
-        if p.kind == inspect.Parameter.KEYWORD_ONLY:
-            short_option = name[0]
-            options.append(f" [-{short_option}|--{name}]")
-        elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            positionals.append(" ")
-            has_default = (p.default != inspect._empty)
-            if has_default:
-                positionals.append("[")
-                nesting += 1
-            positionals.append(f"<{name}>")
-    positionals.append("]" * nesting)
-
-
-    parameters = "".join(options + positionals)
-    print(f"blurb {subcommand}{parameters}")
-    print()
-    print(doc)
-    sys.exit(0)
-
-# Make "blurb --help/--version/-V" work.
-subcommands["--help"] = help
-subcommands["--version"] = version
-subcommands["-V"] = version
 
 
 def _find_blurb_dir():
@@ -825,12 +753,10 @@ def validate_add_parameters(section, gh_issue, rst_on_stdin):
         error(f"--section must be one of {SECTIONS} not {section!r}")
 
     if gh_issue < 0:
-        error(f"--gh_issue must be a positive integer not {gh_issue!r}")
+        error(f"--gh-issue must be a positive integer not {gh_issue!r}")
 
     if rst_on_stdin and (gh_issue <= 0 or not section):
-        error("--gh_issue and --section required with --rst_on_stdin")
-
-    return True
+        error("--gh-issue and --section required with --rst-on-stdin")
 
 
 def prepare_template(tmp_path, gh_issue, section, rst_content):
@@ -842,7 +768,7 @@ def prepare_template(tmp_path, gh_issue, section, rst_content):
     text = text.replace(f"\n{issue_line}\n", f"\n{issue_line} \n")
 
     # Apply substitutions
-    if gh_issue > 0:
+    if gh_issue:
         text = text.replace(".. gh-issue: \n", f".. gh-issue: {gh_issue}\n")
     if section:
         text = text.replace(f"#.. section: {section}\n", f".. section: {section}\n")
@@ -889,25 +815,26 @@ def edit_until_valid(editor, tmp_path):
             print()
 
 
-@subcommand
-def add(*, help=False, gh_issue: int = 0, section: str = "", rst_on_stdin=False):
+@app.command(name="add")
+def add(*, gh_issue: int = 0, section: str = "", rst_on_stdin: bool = False):
+    # This docstring template is formatted after the function definition.
+    """Add a new Misc/NEWS entry.
+
+    Opens an editor to create a new entry for Misc/NEWS unless all
+    automation parameters are provided.
+
+    Parameters
+    ----------
+    gh_issue : int, optional
+        GitHub issue number (optional, must be >= {lowest_possible_gh_issue_number}).
+    section : str, optional
+        NEWS section. One of {sections_csv}.
+    rst_on_stdin : bool
+        Read restructured text entry from stdin (requires gh issue and section).
     """
-Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 
-Optional arguments, useful for automation:
-  --gh_issue - The GitHub issue number to associate the NEWS entry with.
-  --section - The NEWS section name. One of {SECTIONS}
-  --rst_on_stdin - Pipe your ReStructured Text news entry via stdin instead of opening an editor.
-
-When using --rst_on_stdin, both --gh_issue and --section are required.
-    """
-    if help:
-        print(add.__doc__)
-        sys.exit(0)
-
-    # Validate parameters
-    if not validate_add_parameters(section, gh_issue, rst_on_stdin):
-        return 1
+    validate_add_parameters(section, gh_issue, rst_on_stdin)
+    chdir_to_repo_root()
 
     # Prepare content source
     if rst_on_stdin:
@@ -946,21 +873,26 @@ When using --rst_on_stdin, both --gh_issue and --section are required.
     print(f"Ready for commit. {path!r} created and git added.")
 
 
-# Format the docstring with the actual SECTIONS list
-add.__doc__ = add.__doc__.format(SECTIONS=SECTIONS)
+add.__doc__ = add.__doc__.format(
+    lowest_possible_gh_issue_number=LOWEST_POSSIBLE_GH_ISSUE_NUMBER,
+    sections_csv=", ".join(repr(s) for s in SECTIONS)
+)
 
 
+@app.command(name="release")
+def release(version: str):
+    """Move all new blurbs to a single blurb file for the release.
 
-@subcommand
-def release(version):
+    This is used by the release manager when cutting a new release.
+
+    Parameters
+    ----------
+    version : str
+        Version to release (use '.' for current directory name)
     """
-Move all new blurbs to a single blurb file for the release.
+    chdir_to_repo_root()
 
-This is used by the release manager when cutting a new release.
-    """
     if version == ".":
-        # harvest version number from dirname of repo
-        # I remind you, we're in the Misc subdir right now
         version = os.path.basename(root)
 
     existing_filenames = glob_blurbs(version)
@@ -1010,17 +942,23 @@ This is used by the release manager when cutting a new release.
 
 
 
-@subcommand
-def merge(output=None, *, forced=False):
-    """
-Merge all blurbs together into a single Misc/NEWS file.
+@app.command(name="merge")
+def merge(
+    output: Optional[str] = None,
+    *,
+    forced: Annotated[bool, Parameter(alias=["-f"])] = False
+):
+    """Merge all blurbs together into a single Misc/NEWS file.
 
-Optional output argument specifies where to write to.
-Default is <cpython-root>/Misc/NEWS.
-
-If overwriting, blurb merge will prompt you to make sure it's okay.
-To force it to overwrite, use -f.
+    Parameters
+    ----------
+    output : str, optional
+        Output file path (default: Misc/NEWS)
+    forced : bool, optional
+        Force overwrite without prompting (-f)
     """
+    chdir_to_repo_root()
+
     if output:
         output = os.path.join(original_dir, output)
     else:
@@ -1148,17 +1086,11 @@ def flush_git_rm_files():
         git_rm_files.clear()
 
 
-# @subcommand
-# def noop():
-#     "Do-nothing command.  Used for blurb smoke-testing."
-#     pass
-
-
-@subcommand
+@app.command(name="populate")
 def populate():
-    """
-Creates and populates the Misc/NEWS.d directory tree.
-    """
+    """Creates and populates the Misc/NEWS.d directory tree."""
+    chdir_to_repo_root()
+
     os.chdir("Misc")
     os.makedirs("NEWS.d/next", exist_ok=True)
 
@@ -1174,157 +1106,34 @@ Creates and populates the Misc/NEWS.d directory tree.
     flush_git_add_files()
 
 
-@subcommand
+@app.command(name="export")
 def export():
-    """
-Removes blurb data files, for building release tarballs/installers.
-    """
+    """Removes blurb data files, for building release tarballs/installers."""
+    chdir_to_repo_root()
+
     os.chdir("Misc")
     shutil.rmtree("NEWS.d", ignore_errors=True)
 
 
-
-# @subcommand
-# def arg(*, boolean=False, option=True):
-#    """
-#    Test function for blurb command-line processing.
-#    """
-#    print(f"arg: boolean {boolean} option {option}")
+@app.default
+def default_command():
+    """Default to 'add' command when no subcommand specified."""
+    add()
 
 
 def main():
+    """Main entry point for the CLI using cyclopts."""
     global original_dir
-
-    args = sys.argv[1:]
-
-    if not args:
-        args = ["add"]
-    elif args[0] == "-h":
-        # slight hack
-        args[0] = "help"
-
-    subcommand = args[0]
-    args = args[1:]
-
-    fn = get_subcommand(subcommand)
-
-    # hack
-    if fn in (help, version):
-        sys.exit(fn(*args))
 
     try:
         original_dir = os.getcwd()
-        chdir_to_repo_root()
-
-        # Special handling for 'add' command with non-boolean options
-        if subcommand == "add":
-            kwargs = {"help": False, "gh_issue": 0, "section": "", "rst_on_stdin": False}
-            filtered_args = []
-            i = 0
-            while i < len(args):
-                arg = args[i]
-                if arg in ("-h", "--help"):
-                    kwargs["help"] = True
-                elif arg == "--gh_issue":
-                    if i + 1 < len(args):
-                        try:
-                            kwargs["gh_issue"] = int(args[i + 1])
-                            i += 1
-                        except ValueError:
-                            sys.exit(f"blurb: --gh_issue requires an integer value, got '{args[i + 1]}'")
-                    else:
-                        sys.exit("blurb: --gh_issue requires a value")
-                elif arg == "--section":
-                    if i + 1 < len(args):
-                        kwargs["section"] = args[i + 1]
-                        i += 1
-                    else:
-                        sys.exit("blurb: --section requires a value")
-                elif arg in ("-r", "--rst_on_stdin"):
-                    kwargs["rst_on_stdin"] = True
-                elif arg.startswith("-"):
-                    sys.exit(f'blurb: Unknown option for add: "{arg}"')
-                else:
-                    filtered_args.append(arg)
-                i += 1
-        else:
-            # Original code for other commands
-            # map keyword arguments to options
-            # we only handle boolean options
-            # and they must have default values
-            short_options = {}
-            long_options = {}
-            kwargs = {}
-            for name, p in inspect.signature(fn).parameters.items():
-                if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                    assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
-                    kwargs[name] = p.default
-                    short_options[name[0]] = name
-                    long_options[name] = name
-
-            filtered_args = []
-            done_with_options = False
-
-            def handle_option(s, dict):
-                name = dict.get(s, None)
-                if not name:
-                    sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-                kwargs[name] = not kwargs[name]
-
-            # print(f"short_options {short_options} long_options {long_options}")
-            for a in args:
-                if done_with_options:
-                    filtered_args.append(a)
-                    continue
-                if a.startswith('-'):
-                    if a == "--":
-                        done_with_options = True
-                    elif a.startswith("--"):
-                        handle_option(a[2:], long_options)
-                    else:
-                        for s in a[1:]:
-                            handle_option(s, short_options)
-                    continue
-                filtered_args.append(a)
-
-
-        sys.exit(fn(*filtered_args, **kwargs))
-    except TypeError as e:
-        # almost certainly wrong number of arguments.
-        # count arguments of function and print appropriate error message.
-        specified = len(args)
-        required = optional = 0
-        for p in inspect.signature(fn).parameters.values():
-            if p.default == inspect._empty:
-                required += 1
-            else:
-                optional += 1
-        total = required + optional
-
-        if required <= specified <= total:
-            # whoops, must be a real type error, reraise
-            raise e
-
-        how_many = f"{specified} argument"
-        if specified != 1:
-            how_many += "s"
-
-        if total == 0:
-            middle = "accepts no arguments"
-        else:
-            if total == required:
-                middle = "requires"
-            else:
-                plural = "" if required == 1 else "s"
-                middle = f"requires at least {required} argument{plural} and at most"
-            middle += f" {total} argument"
-            if total != 1:
-                middle += "s"
-
-        print(f'Error: Wrong number of arguments!\n\nblurb {subcommand} {middle},\nand you specified {how_many}.')
-        print()
-        print("usage: ", end="")
-        help(subcommand)
+        app()
+    except SystemExit:
+        raise
+    except KeyboardInterrupt:
+        sys.exit("Interrupted")
+    except Exception as e:
+        error(str(e))
 
 
 if __name__ == '__main__':

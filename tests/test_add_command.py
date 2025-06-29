@@ -26,19 +26,18 @@ class TestAddCommand:
         blurb.root = self.original_root
 
     def test_add_help_parameter(self, capsys):
-        """Test that --help displays the help text."""
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(help=True)
+        """Test that add command has proper help text."""
+        # With cyclopts, help is handled by the framework, not a parameter
+        # We'll test the docstring is properly formatted instead
+        assert blurb.add.__doc__ is not None
+        assert "Add a new Misc/NEWS entry" in blurb.add.__doc__
+        assert "gh_issue" in blurb.add.__doc__
+        assert "section" in blurb.add.__doc__
+        assert "rst_on_stdin" in blurb.add.__doc__
+        assert str(blurb.LOWEST_POSSIBLE_GH_ISSUE_NUMBER) in blurb.add.__doc__
 
-        # help exits with code 0
-        assert exc_info.value.code == 0
-        captured = capsys.readouterr()
-        assert "Add a blurb" in captured.out
-        assert "--gh_issue" in captured.out
-        assert "--section" in captured.out
-        assert "--rst_on_stdin" in captured.out
-
-    def test_invalid_section_parameter(self, capsys):
+    @mock.patch.object(blurb, 'chdir_to_repo_root')
+    def test_invalid_section_parameter(self, mock_chdir, capsys):
         """Test that invalid section names are rejected."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(section="InvalidSection")
@@ -47,37 +46,41 @@ class TestAddCommand:
         assert "--section must be one of" in str(exc_info.value)
         assert "InvalidSection" in str(exc_info.value)
 
-    def test_negative_gh_issue(self, capsys):
+    @mock.patch.object(blurb, 'chdir_to_repo_root')
+    def test_negative_gh_issue(self, mock_chdir, capsys):
         """Test that negative GitHub issue numbers are rejected."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(gh_issue=-123)
 
         # error() function exits with string message, not code
-        assert "--gh_issue must be a positive integer" in str(exc_info.value)
+        assert "--gh-issue must be a positive integer" in str(exc_info.value)
 
-    def test_rst_on_stdin_requires_other_params(self, capsys):
-        """Test that --rst_on_stdin requires --gh_issue and --section."""
+    @mock.patch.object(blurb, 'chdir_to_repo_root')
+    def test_rst_on_stdin_requires_other_params(self, mock_chdir, capsys):
+        """Test that --rst-on-stdin requires --gh-issue and --section."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(rst_on_stdin=True)
 
         # error() function exits with string message, not code
-        assert "--gh_issue and --section required with --rst_on_stdin" in str(exc_info.value)
+        assert "--gh-issue and --section required with --rst-on-stdin" in str(exc_info.value)
 
-    def test_rst_on_stdin_missing_section(self, capsys):
-        """Test that --rst_on_stdin fails without --section."""
+    @mock.patch.object(blurb, 'chdir_to_repo_root')
+    def test_rst_on_stdin_missing_section(self, mock_chdir, capsys):
+        """Test that --rst-on-stdin fails without --section."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(rst_on_stdin=True, gh_issue=12345)
 
         # error() function exits with string message, not code
-        assert "--gh_issue and --section required with --rst_on_stdin" in str(exc_info.value)
+        assert "--gh-issue and --section required with --rst-on-stdin" in str(exc_info.value)
 
-    def test_rst_on_stdin_missing_gh_issue(self, capsys):
-        """Test that --rst_on_stdin fails without --gh_issue."""
+    @mock.patch.object(blurb, 'chdir_to_repo_root')
+    def test_rst_on_stdin_missing_gh_issue(self, mock_chdir, capsys):
+        """Test that --rst-on-stdin fails without --gh-issue."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(rst_on_stdin=True, section="Library")
 
         # error() function exits with string message, not code
-        assert "--gh_issue and --section required with --rst_on_stdin" in str(exc_info.value)
+        assert "--gh-issue and --section required with --rst-on-stdin" in str(exc_info.value)
 
     @mock.patch('blurb.blurb.chdir_to_repo_root')
     @mock.patch('blurb.blurb.flush_git_add_files')
