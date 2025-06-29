@@ -3,10 +3,11 @@
 ## 2.1.0 (unreleased)
 
 * Add automation support to `blurb add` command:
-  * New `--gh_issue` option to specify GitHub issue number
+  * New `--gh-issue` option to specify GitHub issue number
   * New `--section` option to specify NEWS section
-  * New `--rst_on_stdin` option to read entry content from stdin
+  * New `--rst-on-stdin` option to read entry content from stdin
   * Useful for CI systems and automated tools
+* Uses `cyclopts` for command line parsing instead of rolling our own to reduce our code size, this changes the help format and brings in a dependency.
 
 ## 2.0.0
 

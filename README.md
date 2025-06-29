@@ -83,10 +83,10 @@ For automated tools and CI systems, `blurb add` supports non-interactive operati
 
 ```bash
 # Add a blurb entry from stdin
-echo "Added beans to the :mod:`spam` module." | blurb add \
-    --gh_issue 123456 \
+echo 'Added beans to the :mod:`spam` module.' | blurb add \
+    --gh-issue 123456 \
     --section Library \
-    --rst_on_stdin
+    --rst-on-stdin
 ```
 
 When using `--rst_on_stdin`, both `--gh_issue` and `--section` are required.
