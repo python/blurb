@@ -2,7 +2,6 @@
 
 import io
 import os
-import tempfile
 from unittest import mock
 import pytest
 from pyfakefs.fake_filesystem import FakeFilesystem
@@ -103,7 +102,7 @@ class TestAddCommand:
         # Call add with automation parameters
         with mock.patch('blurb.blurb.sortable_datetime', return_value='2024-01-01-12-00-00'):
             with mock.patch('blurb.blurb.nonceify', return_value='abc123'):
-                result = blurb.add(
+                blurb.add(
                     gh_issue=123456,
                     section="Library",
                     rst_on_stdin=True

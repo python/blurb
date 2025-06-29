@@ -1,9 +1,7 @@
 """Integration tests for the blurb CLI tool."""
 
-import os
 import subprocess
 import sys
-from pathlib import Path
 import pytest
 import shutil
 
