@@ -77,6 +77,20 @@ It opens a text editor on a template; you edit the
 file, save, and exit.  **blurb** then stores the file
 in the correct place, and stages it in Git for you.
 
+#### Automation support
+
+For automated tools and CI systems, `blurb add` supports non-interactive operation:
+
+```bash
+# Add a blurb entry from stdin
+echo "Added beans to the :mod:`spam` module." | blurb add \
+    --gh_issue 123456 \
+    --section Library \
+    --rst_on_stdin
+```
+
+When using `--rst_on_stdin`, both `--gh_issue` and `--section` are required.
+
 The template for the `blurb add` message looks like this:
 
     #

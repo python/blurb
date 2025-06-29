@@ -63,7 +63,8 @@ from . import __version__
 
 #
 # This template is the canonical list of acceptable section names!
-# It's parsed internally into the "sections" set.
+# It is parsed internally into SECTIONS.  String replacement on the
+# formatted comments is done later.  Beware when editing.
 #
 
 template = """
@@ -98,13 +99,14 @@ template = """
 
 root = None
 original_dir = None
-sections = []
+SECTIONS = []
 
 for line in template.split('\n'):
     line = line.strip()
     prefix, found, section = line.partition("#.. section: ")
     if found and not prefix:
-        sections.append(section.strip())
+        SECTIONS.append(section.strip())
+    SECTIONS = sorted(SECTIONS)
 
 
 _sanitize_section = {
@@ -319,8 +321,8 @@ def glob_blurbs(version):
         filenames.extend(glob.glob(wildcard))
     else:
         sanitized_sections = (
-                {sanitize_section(section) for section in sections} |
-                {sanitize_section_legacy(section) for section in sections}
+                {sanitize_section(section) for section in SECTIONS} |
+                {sanitize_section_legacy(section) for section in SECTIONS}
         )
         for section in sanitized_sections:
             wildcard = os.path.join(base, section, "*.rst")
@@ -487,7 +489,7 @@ class Blurbs(list):
                 if key == "section":
                     if no_changes:
                         continue
-                    if value not in sections:
+                    if value not in SECTIONS:
                         throw(f"Invalid section {value!r}!  You must use one of the predefined sections.")
 
             if "gh-issue" not in metadata and "bpo" not in metadata:
@@ -568,7 +570,7 @@ Broadly equivalent to blurb.parse(open(filename).read()).
         components = filename.split(os.sep)
         section, filename = components[-2:]
         section = unsanitize_section(section)
-        assert section in sections, f"Unknown section {section}"
+        assert section in SECTIONS, f"Unknown section {section}"
 
         fields = [x.strip() for x in filename.split(".")]
         assert len(fields) >= 4, f"Can't parse 'next' filename! filename {filename!r} fields {fields}"
@@ -817,42 +819,43 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
-@subcommand
-def add():
-    """
-Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
-    """
+def validate_add_parameters(section, gh_issue, rst_on_stdin):
+    """Validate parameters for the add command."""
+    if section and section not in SECTIONS:
+        error(f"--section must be one of {SECTIONS} not {section!r}")
 
-    editor = find_editor()
+    if gh_issue < 0:
+        error(f"--gh_issue must be a positive integer not {gh_issue!r}")
 
-    handle, tmp_path = tempfile.mkstemp(".rst")
-    os.close(handle)
-    atexit.register(lambda : os.unlink(tmp_path))
+    if rst_on_stdin and (gh_issue <= 0 or not section):
+        error("--gh_issue and --section required with --rst_on_stdin")
 
-    def init_tmp_with_template():
-        with open(tmp_path, "wt", encoding="utf-8") as file:
-            # hack:
-            # my editor likes to strip trailing whitespace from lines.
-            # normally this is a good idea.  but in the case of the template
-            # it's unhelpful.
-            # so, manually ensure there's a space at the end of the gh-issue line.
-            text = template
+    return True
 
-            issue_line = ".. gh-issue:"
-            without_space = "\n" + issue_line + "\n"
-            with_space = "\n" + issue_line + " \n"
-            if without_space not in text:
-                sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-            text = text.replace(without_space, with_space)
-            file.write(text)
 
-    init_tmp_with_template()
+def prepare_template(tmp_path, gh_issue, section, rst_content):
+    """Write the template file with substitutions."""
+    text = template
 
-    # We need to be clever about EDITOR.
-    # On the one hand, it might be a legitimate path to an
-    #   executable containing spaces.
-    # On the other hand, it might be a partial command-line
-    #   with options.
+    # Ensure gh-issue line ends with space
+    issue_line = ".. gh-issue:"
+    text = text.replace(f"\n{issue_line}\n", f"\n{issue_line} \n")
+
+    # Apply substitutions
+    if gh_issue > 0:
+        text = text.replace(".. gh-issue: \n", f".. gh-issue: {gh_issue}\n")
+    if section:
+        text = text.replace(f"#.. section: {section}\n", f".. section: {section}\n")
+    if rst_content:
+        marker = "#################\n\n"
+        text = text.replace(marker, f"{marker}{rst_content}\n")
+
+    with open(tmp_path, "wt", encoding="utf-8") as file:
+        file.write(text)
+
+
+def get_editor_args(editor, tmp_path):
+    """Prepare editor command arguments."""
     if shutil.which(editor):
         args = [editor]
     else:
@@ -860,39 +863,91 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
         if not shutil.which(args[0]):
             sys.exit(f"Invalid GIT_EDITOR / EDITOR value: {editor}")
     args.append(tmp_path)
+    return args
+
+
+def edit_until_valid(editor, tmp_path):
+    """Run editor until we get a valid blurb."""
+    args = get_editor_args(editor, tmp_path)
 
     while True:
         subprocess.run(args)
 
-        failure = None
         blurb = Blurbs()
         try:
             blurb.load(tmp_path)
-        except BlurbError as e:
-            failure = str(e)
-
-        if not failure:
-            assert len(blurb) # if parse_blurb succeeds, we should always have a body
             if len(blurb) > 1:
-                failure = "Too many entries!  Don't specify '..' on a line by itself."
-
-        if failure:
-            print()
-            print(f"Error: {failure}")
-            print()
+                raise BlurbError("Too many entries! Don't specify '..' on a line by itself.")
+            return blurb
+        except BlurbError as e:
+            print(f"\nError: {e}\n")
             try:
                 prompt("Hit return to retry (or Ctrl-C to abort)")
             except KeyboardInterrupt:
                 print()
-                return
+                return None
             print()
-            continue
-        break
 
+
+@subcommand
+def add(*, help=False, gh_issue: int = 0, section: str = "", rst_on_stdin=False):
+    """
+Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+
+Optional arguments, useful for automation:
+  --gh_issue - The GitHub issue number to associate the NEWS entry with.
+  --section - The NEWS section name. One of {SECTIONS}
+  --rst_on_stdin - Pipe your ReStructured Text news entry via stdin instead of opening an editor.
+
+When using --rst_on_stdin, both --gh_issue and --section are required.
+    """
+    if help:
+        print(add.__doc__)
+        sys.exit(0)
+
+    # Validate parameters
+    if not validate_add_parameters(section, gh_issue, rst_on_stdin):
+        return 1
+
+    # Prepare content source
+    if rst_on_stdin:
+        rst_content = sys.stdin.read().strip()
+        if not rst_content:
+            error("No content provided on stdin")
+        editor = None
+    else:
+        rst_content = None
+        editor = find_editor()
+
+    # Create temp file
+    handle, tmp_path = tempfile.mkstemp(".rst")
+    os.close(handle)
+    atexit.register(lambda: os.path.exists(tmp_path) and os.unlink(tmp_path))
+
+    # Prepare template
+    prepare_template(tmp_path, gh_issue, section, rst_content)
+
+    # Get blurb content
+    if editor:
+        blurb = edit_until_valid(editor, tmp_path)
+        if not blurb:
+            return 1
+    else:
+        blurb = Blurbs()
+        try:
+            blurb.load(tmp_path)
+        except BlurbError as e:
+            error(str(e))
+
+    # Save and commit
     path = blurb.save_next()
     git_add_files.append(path)
     flush_git_add_files()
-    print("Ready for commit.")
+    print(f"Ready for commit. {path!r} created and git added.")
+
+
+# Format the docstring with the actual SECTIONS list
+add.__doc__ = add.__doc__.format(SECTIONS=SECTIONS)
 
 
 
@@ -1107,7 +1162,7 @@ Creates and populates the Misc/NEWS.d directory tree.
     os.chdir("Misc")
     os.makedirs("NEWS.d/next", exist_ok=True)
 
-    for section in sections:
+    for section in SECTIONS:
         dir_name = sanitize_section(section)
         dir_path = f"NEWS.d/next/{dir_name}"
         os.makedirs(dir_path, exist_ok=True)
@@ -1161,43 +1216,76 @@ def main():
         original_dir = os.getcwd()
         chdir_to_repo_root()
 
-        # map keyword arguments to options
-        # we only handle boolean options
-        # and they must have default values
-        short_options = {}
-        long_options = {}
-        kwargs = {}
-        for name, p in inspect.signature(fn).parameters.items():
-            if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
-                kwargs[name] = p.default
-                short_options[name[0]] = name
-                long_options[name] = name
-
-        filtered_args = []
-        done_with_options = False
-
-        def handle_option(s, dict):
-            name = dict.get(s, None)
-            if not name:
-                sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
-
-        # print(f"short_options {short_options} long_options {long_options}")
-        for a in args:
-            if done_with_options:
-                filtered_args.append(a)
-                continue
-            if a.startswith('-'):
-                if a == "--":
-                    done_with_options = True
-                elif a.startswith("--"):
-                    handle_option(a[2:], long_options)
+        # Special handling for 'add' command with non-boolean options
+        if subcommand == "add":
+            kwargs = {"help": False, "gh_issue": 0, "section": "", "rst_on_stdin": False}
+            filtered_args = []
+            i = 0
+            while i < len(args):
+                arg = args[i]
+                if arg in ("-h", "--help"):
+                    kwargs["help"] = True
+                elif arg == "--gh_issue":
+                    if i + 1 < len(args):
+                        try:
+                            kwargs["gh_issue"] = int(args[i + 1])
+                            i += 1
+                        except ValueError:
+                            sys.exit(f"blurb: --gh_issue requires an integer value, got '{args[i + 1]}'")
+                    else:
+                        sys.exit("blurb: --gh_issue requires a value")
+                elif arg == "--section":
+                    if i + 1 < len(args):
+                        kwargs["section"] = args[i + 1]
+                        i += 1
+                    else:
+                        sys.exit("blurb: --section requires a value")
+                elif arg in ("-r", "--rst_on_stdin"):
+                    kwargs["rst_on_stdin"] = True
+                elif arg.startswith("-"):
+                    sys.exit(f'blurb: Unknown option for add: "{arg}"')
                 else:
-                    for s in a[1:]:
-                        handle_option(s, short_options)
-                continue
-            filtered_args.append(a)
+                    filtered_args.append(arg)
+                i += 1
+        else:
+            # Original code for other commands
+            # map keyword arguments to options
+            # we only handle boolean options
+            # and they must have default values
+            short_options = {}
+            long_options = {}
+            kwargs = {}
+            for name, p in inspect.signature(fn).parameters.items():
+                if p.kind == inspect.Parameter.KEYWORD_ONLY:
+                    assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                    kwargs[name] = p.default
+                    short_options[name[0]] = name
+                    long_options[name] = name
+
+            filtered_args = []
+            done_with_options = False
+
+            def handle_option(s, dict):
+                name = dict.get(s, None)
+                if not name:
+                    sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
+                kwargs[name] = not kwargs[name]
+
+            # print(f"short_options {short_options} long_options {long_options}")
+            for a in args:
+                if done_with_options:
+                    filtered_args.append(a)
+                    continue
+                if a.startswith('-'):
+                    if a == "--":
+                        done_with_options = True
+                    elif a.startswith("--"):
+                        handle_option(a[2:], long_options)
+                    else:
+                        for s in a[1:]:
+                            handle_option(s, short_options)
+                    continue
+                filtered_args.append(a)
 
 
         sys.exit(fn(*filtered_args, **kwargs))
