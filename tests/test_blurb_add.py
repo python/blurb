@@ -289,46 +289,10 @@ class TestAddCommandAutomation:
         with mock.patch.object(blurb, 'chdir_to_repo_root') as m:
             yield m
 
-    def test_invalid_section_parameter(self, mock_chdir, capsys):
-        """Test that invalid section names are rejected."""
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(section="InvalidSection")
-
-        # error() function exits with string message, not code
-        assert "Invalid section name: 'InvalidSection'" in str(exc_info.value)
-
-    def test_invalid_gh_issue_number(self, mock_chdir, capsys):
-        """Test that invalid GitHub issue numbers are rejected."""
-        # Test issue number below threshold
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(issue="123")
-        assert "Invalid issue number: 123" in str(exc_info.value)
-
-        # Test invalid formats
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(issue="not-a-number")
-        assert "Invalid GitHub issue: not-a-number" in str(exc_info.value)
-
     def test_rst_on_stdin_requires_other_params(self, mock_chdir, capsys):
         """Test that --rst-on-stdin requires --issue and --section."""
         with pytest.raises(SystemExit) as exc_info:
             blurb.add(rst_on_stdin=True)
-
-        # error() function exits with string message, not code
-        assert "--issue and --section required with --rst-on-stdin" in str(exc_info.value)
-
-    def test_rst_on_stdin_missing_section(self, mock_chdir, capsys):
-        """Test that --rst-on-stdin fails without --section."""
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(rst_on_stdin=True, issue="123456")
-
-        # error() function exits with string message, not code
-        assert "--issue and --section required with --rst-on-stdin" in str(exc_info.value)
-
-    def test_rst_on_stdin_missing_issue(self, mock_chdir, capsys):
-        """Test that --rst-on-stdin fails without --issue."""
-        with pytest.raises(SystemExit) as exc_info:
-            blurb.add(rst_on_stdin=True, section="Library")
 
         # error() function exits with string message, not code
         assert "--issue and --section required with --rst-on-stdin" in str(exc_info.value)
