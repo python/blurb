@@ -110,13 +110,13 @@ class TestAddCommand:
         result = run_blurb(blurb_executable, ["add", "--help"], cwd=mock_cpython_repo)
         assert result.returncode == 0
         output = result.stdout + result.stderr
-        required_content = ["Add a new Misc/NEWS entry", "--gh-issue", "--section", "--rst-on-stdin", "Library"]
+        required_content = ["Add a new Misc/NEWS entry", "--issue", "--section", "--rst-on-stdin"]
         assert all(content in output for content in required_content)
 
     @pytest.mark.parametrize("args,error_text", [
-        (["--section", "InvalidSection"], "must be one of"),
-        (["--gh-issue", "-123"], "must be a positive integer"),
-        (["--rst-on-stdin"], "--gh-issue and --section required"),
+        (["--section", "InvalidSection"], "Invalid section name"),
+        (["--issue", "not-a-number"], "Invalid GitHub issue"),
+        (["--rst-on-stdin"], "--issue and --section required"),
     ])
     def test_validation_errors(self, mock_cpython_repo, blurb_executable, args, error_text):
         result = run_blurb(blurb_executable, ["add"] + args, cwd=mock_cpython_repo)
@@ -128,7 +128,7 @@ class TestAddCommand:
         blurb_text = f"Fixed a bug in the {section.lower()} that improves spam handling."
         result = run_blurb(
             blurb_executable,
-            ["add", "--gh-issue", "123456", "--section", section, "--rst-on-stdin"],
+            ["add", "--issue", "123456", "--section", section, "--rst-on-stdin"],
             cwd=mock_cpython_repo,
             input_text=blurb_text
         )
