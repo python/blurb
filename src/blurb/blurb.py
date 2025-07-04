@@ -747,31 +747,26 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
-def validate_add_parameters(section, gh_issue, rst_on_stdin):
-    """Validate parameters for the add command."""
-    if section and section not in SECTIONS:
-        error(f"--section must be one of {SECTIONS} not {section!r}")
-
-    if gh_issue < 0:
-        error(f"--gh-issue must be a positive integer not {gh_issue!r}")
-
-    if rst_on_stdin and (gh_issue <= 0 or not section):
-        error("--gh-issue and --section required with --rst-on-stdin")
 
 
-def prepare_template(tmp_path, gh_issue, section, rst_content):
+def prepare_template(tmp_path, issue_number, section_name, rst_content):
     """Write the template file with substitutions."""
     text = template
 
-    # Ensure gh-issue line ends with space
+    # Ensure gh-issue line ends with space (or fill in issue number)
     issue_line = ".. gh-issue:"
-    text = text.replace(f"\n{issue_line}\n", f"\n{issue_line} \n")
+    pattern = f"\n{issue_line}\n"
+    if issue_number:
+        replacement = f"\n{issue_line} {issue_number}\n"
+    else:
+        replacement = f"\n{issue_line} \n"
+    text = text.replace(pattern, replacement)
 
-    # Apply substitutions
-    if gh_issue:
-        text = text.replace(".. gh-issue: \n", f".. gh-issue: {gh_issue}\n")
-    if section:
-        text = text.replace(f"#.. section: {section}\n", f".. section: {section}\n")
+    # Apply section substitution
+    if section_name:
+        text = text.replace(f"#.. section: {section_name}\n", f".. section: {section_name}\n")
+
+    # Apply content substitution
     if rst_content:
         marker = "#################\n\n"
         text = text.replace(marker, f"{marker}{rst_content}\n")
@@ -815,25 +810,138 @@ def edit_until_valid(editor, tmp_path):
             print()
 
 
+def _extract_issue_number(issue):
+    """Extract issue number from various formats like '12345', 'gh-12345', or GitHub URLs."""
+    if issue is None:
+        return None
+
+    issue = raw_issue = str(issue).strip()
+    if issue.startswith('gh-'):
+        issue = issue[3:]
+    if issue.isdigit():
+        return issue
+
+    match = re.match(r'^(?:https://)?github\.com/python/cpython/issues/(\d+)$', issue)
+    if match is None:
+        error(f"Invalid GitHub issue: {raw_issue}")
+    return match.group(1)
+
+
+def _extract_section_name(section):
+    """Extract section name with smart matching."""
+    if section is None:
+        return None
+
+    section = raw_section = section.strip()
+    if not section:
+        error("Empty section name!")
+
+    matches = []
+    # Try simple case-insensitive substring matching
+    section_lower = section.lower()
+    for section_name in SECTIONS:
+        if section_lower in section_name.lower():
+            matches.append(section_name)
+
+    # If no matches, try more complex matching
+    if not matches:
+        matches = _find_smart_matches(section)
+
+    if not matches:
+        sections_list = '\n'.join(f'  - {s}' for s in SECTIONS)
+        error(f"Invalid section name: {raw_section!r}\n\nValid sections are:\n{sections_list}")
+
+    if len(matches) > 1:
+        multiple_matches = ', '.join(map(repr, sorted(matches)))
+        error(f"More than one match for: {raw_section!r}\nMatches: {multiple_matches}")
+
+    return matches[0]
+
+
+def _find_smart_matches(section):
+    """Find matches using advanced pattern matching."""
+    # Normalize separators
+    sanitized = re.sub(r'[_\- /]', ' ', section).strip()
+    if not sanitized:
+        return []
+
+    matches = []
+    section_words = re.split(r'\s+', sanitized)
+
+    # Build pattern to match against known sections
+    section_pattern = r'[\s/]*'.join(map(re.escape, section_words))
+    section_pattern = re.compile(section_pattern, re.I)
+
+    for section_name in SECTIONS:
+        if section_pattern.search(section_name):
+            matches.append(section_name)
+
+    # Special cases and aliases
+    normalized = ''.join(section_words).lower()
+
+    # Check special aliases
+    aliases = {
+        'api': 'C API',
+        'capi': 'C API',
+        'builtin': 'Core and Builtins',
+        'builtins': 'Core and Builtins',
+        'core': 'Core and Builtins',
+        'demo': 'Tools/Demos',
+        'demos': 'Tools/Demos',
+        'tool': 'Tools/Demos',
+        'tools': 'Tools/Demos',
+    }
+
+    for alias, section_name in aliases.items():
+        if normalized.startswith(alias):
+            if section_name not in matches:
+                matches.append(section_name)
+
+    # Try matching by removing spaces/separators
+    if not matches:
+        for section_name in SECTIONS:
+            section_normalized = re.sub(r'[^a-zA-Z0-9]', '', section_name).lower()
+            if section_normalized.startswith(normalized):
+                matches.append(section_name)
+
+    return matches
+
+
 @app.command(name="add")
-def add(*, gh_issue: int = 0, section: str = "", rst_on_stdin: bool = False):
+def add(*, issue: Annotated[Optional[str], Parameter(alias=["-i"])] = None,
+        section: Annotated[Optional[str], Parameter(alias=["-s"])] = None,
+        rst_on_stdin: bool = False):
     # This docstring template is formatted after the function definition.
     """Add a new Misc/NEWS entry.
 
     Opens an editor to create a new entry for Misc/NEWS unless all
     automation parameters are provided.
 
+    Use -i/--issue to specify a GitHub issue number or link.
+    Use -s/--section to specify the NEWS section (case insensitive with partial matching).
+
     Parameters
     ----------
-    gh_issue : int, optional
-        GitHub issue number (optional, must be >= {lowest_possible_gh_issue_number}).
+    issue : str, optional
+        GitHub issue number or URL (e.g. '12345', 'gh-12345', or 'https://github.com/python/cpython/issues/12345').
     section : str, optional
-        NEWS section. One of {sections_csv}.
+        NEWS section. Can use partial matching (e.g. 'lib' for 'Library'). One of {sections_csv}.
     rst_on_stdin : bool
-        Read restructured text entry from stdin (requires gh issue and section).
+        Read restructured text entry from stdin (requires issue and section).
     """
 
-    validate_add_parameters(section, gh_issue, rst_on_stdin)
+    # Extract and validate issue number
+    issue_number = _extract_issue_number(issue) if issue else None
+    if issue_number and int(issue_number) < LOWEST_POSSIBLE_GH_ISSUE_NUMBER:
+        error(f"Invalid issue number: {issue_number} (must be >= {LOWEST_POSSIBLE_GH_ISSUE_NUMBER})")
+
+    # Extract and validate section
+    section_name = _extract_section_name(section) if section else None
+
+    # Validate parameters for stdin mode
+    if rst_on_stdin and (not issue_number or not section_name):
+        error("--issue and --section required with --rst-on-stdin")
+
     chdir_to_repo_root()
 
     # Prepare content source
@@ -852,7 +960,7 @@ def add(*, gh_issue: int = 0, section: str = "", rst_on_stdin: bool = False):
     atexit.register(lambda: os.path.exists(tmp_path) and os.unlink(tmp_path))
 
     # Prepare template
-    prepare_template(tmp_path, gh_issue, section, rst_content)
+    prepare_template(tmp_path, issue_number, section_name, rst_content)
 
     # Get blurb content
     if editor:
@@ -874,7 +982,6 @@ def add(*, gh_issue: int = 0, section: str = "", rst_on_stdin: bool = False):
 
 
 add.__doc__ = add.__doc__.format(
-    lowest_possible_gh_issue_number=LOWEST_POSSIBLE_GH_ISSUE_NUMBER,
     sections_csv=", ".join(repr(s) for s in SECTIONS)
 )
 
