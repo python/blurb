@@ -912,10 +912,11 @@ def add(*, issue: Annotated[Optional[str], Parameter(alias=["-i"])] = None,
         section: Annotated[Optional[str], Parameter(alias=["-s"])] = None,
         rst_on_stdin: bool = False):
     # This docstring template is formatted after the function definition.
-    """Add a new Misc/NEWS entry.
+    """Add a new Misc/NEWS entry (default command).
 
     Opens an editor to create a new entry for Misc/NEWS unless all
-    automation parameters are provided.
+    automation parameters are provided. This is the default command when
+    no subcommand is specified.
 
     Use -i/--issue to specify a GitHub issue number or link.
     Use -s/--section to specify the NEWS section (case insensitive with partial matching).
@@ -1223,9 +1224,11 @@ def export():
 
 
 @app.default
-def default_command():
+def default_command(*, issue: Annotated[Optional[str], Parameter(alias=["-i"])] = None,
+                   section: Annotated[Optional[str], Parameter(alias=["-s"])] = None,
+                   rst_on_stdin: bool = False):
     """Default to 'add' command when no subcommand specified."""
-    add()
+    add(issue=issue, section=section, rst_on_stdin=rst_on_stdin)
 
 
 def main():
