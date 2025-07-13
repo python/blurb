@@ -60,6 +60,17 @@ from . import __version__
 
 
 LOWEST_POSSIBLE_GH_ISSUE_NUMBER = 32426
+SECTION_ALIASES = {
+    'api': 'C API',
+    'capi': 'C API',
+    'builtin': 'Core and Builtins',
+    'builtins': 'Core and Builtins',
+    'core': 'Core and Builtins',
+    'demo': 'Tools/Demos',
+    'demos': 'Tools/Demos',
+    'tool': 'Tools/Demos',
+    'tools': 'Tools/Demos',
+}
 
 #
 # This template is the canonical list of acceptable section names!
@@ -877,21 +888,7 @@ def _find_smart_matches(section):
 
     # Special cases and aliases
     normalized = ''.join(section_words).lower()
-
-    # Check special aliases
-    aliases = {
-        'api': 'C API',
-        'capi': 'C API',
-        'builtin': 'Core and Builtins',
-        'builtins': 'Core and Builtins',
-        'core': 'Core and Builtins',
-        'demo': 'Tools/Demos',
-        'demos': 'Tools/Demos',
-        'tool': 'Tools/Demos',
-        'tools': 'Tools/Demos',
-    }
-
-    for alias, section_name in aliases.items():
+    for alias, section_name in SECTION_ALIASES.items():
         if normalized.startswith(alias):
             if section_name not in matches:
                 matches.append(section_name)
