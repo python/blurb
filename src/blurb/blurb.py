@@ -909,7 +909,7 @@ def _find_smart_matches(section):
 @app.command(name="add")
 def add(*, issue: Annotated[Optional[str], Parameter(alias=["-i"])] = None,
         section: Annotated[Optional[str], Parameter(alias=["-s"])] = None,
-        rst_on_stdin: bool = False):
+        rst_on_stdin: Annotated[bool, Parameter(alias=["-D"])] = False):
     # This docstring template is formatted after the function definition.
     """Add a new Misc/NEWS entry (default command).
 
@@ -1225,7 +1225,7 @@ def export():
 @app.default
 def default_command(*, issue: Annotated[Optional[str], Parameter(alias=["-i"])] = None,
                    section: Annotated[Optional[str], Parameter(alias=["-s"])] = None,
-                   rst_on_stdin: bool = False):
+                   rst_on_stdin: Annotated[bool, Parameter(alias=["-D"])] = False):
     """Default to 'add' command when no subcommand specified."""
     add(issue=issue, section=section, rst_on_stdin=rst_on_stdin)
 
