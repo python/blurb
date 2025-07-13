@@ -52,7 +52,7 @@ import sys
 import tempfile
 import textwrap
 import time
-from typing import Optional, Annotated
+from typing import Annotated, Optional  # required by cyclopts
 
 from cyclopts import App, Parameter
 
