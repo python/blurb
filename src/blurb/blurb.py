@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Command-line tool to manage CPython Misc/NEWS.d entries."""
 ##
 ## Part of the blurb package.
