@@ -69,19 +69,19 @@ def test_invalid_issue_number(issue):
 
 class TestValidSectionNames:
     @staticmethod
-    def check(section, expect):
+    def check(section, expected):
         actual = blurb._extract_section_name(section)
-        assert actual == expect
+        assert actual == expected
 
     @pytest.mark.parametrize(
-        ('section', 'expect'),
+        ('section', 'expected'),
         tuple(zip(blurb.SECTIONS, blurb.SECTIONS))
     )
-    def test_exact_names(self, section, expect):
-        self.check(section, expect)
+    def test_exact_names(self, section, expected):
+        self.check(section, expected)
 
     @pytest.mark.parametrize(
-        ('section', 'expect'), [
+        ('section', 'expected'), [
             ('Sec', 'Security'),
             ('sec', 'Security'),
             ('security', 'Security'),
@@ -103,11 +103,11 @@ class TestValidSectionNames:
             ('core', 'Core and Builtins'),
         ]
     )
-    def test_partial_words(self, section, expect):
-        self.check(section, expect)
+    def test_partial_words(self, section, expected):
+        self.check(section, expected)
 
     @pytest.mark.parametrize(
-        ('section', 'expect'), [
+        ('section', 'expected'), [
             ('builtin', 'Core and Builtins'),
             ('builtins', 'Core and Builtins'),
             ('api', 'C API'),
@@ -119,11 +119,11 @@ class TestValidSectionNames:
             ('demos', 'Tools/Demos'),
         ]
     )
-    def test_partial_special_names(self, section, expect):
-        self.check(section, expect)
+    def test_partial_special_names(self, section, expected):
+        self.check(section, expected)
 
     @pytest.mark.parametrize(
-        ('section', 'expect'), [
+        ('section', 'expected'), [
             ('Core-and-Builtins', 'Core and Builtins'),
             ('Core_and_Builtins', 'Core and Builtins'),
             ('Core_and-Builtins', 'Core and Builtins'),
@@ -138,12 +138,12 @@ class TestValidSectionNames:
             ('Tools demo', 'Tools/Demos'),
         ]
     )
-    def test_partial_separators(self, section, expect):
+    def test_partial_separators(self, section, expected):
         # normalize the separtors '_', '-', ' ' and '/'
-        self.check(section, expect)
+        self.check(section, expected)
 
     @pytest.mark.parametrize(
-        ('prefix', 'expect'), [
+        ('prefix', 'expected'), [
             ('corean', 'Core and Builtins'),
             ('coreand', 'Core and Builtins'),
             ('coreandbuilt', 'Core and Builtins'),
@@ -157,23 +157,23 @@ class TestValidSectionNames:
             ('Coreand buil', 'Core and Builtins'),
         ]
     )
-    def test_partial_prefix_words(self, prefix, expect):
+    def test_partial_prefix_words(self, prefix, expected):
         # try to find a match using prefixes (without separators and lowercase)
-        self.check(prefix, expect)
+        self.check(prefix, expected)
 
     @pytest.mark.parametrize(
-        ('section', 'expect'),
+        ('section', 'expected'),
         [(name.lower(), name) for name in blurb.SECTIONS],
     )
-    def test_exact_names_lowercase(self, section, expect):
-        self.check(section, expect)
+    def test_exact_names_lowercase(self, section, expected):
+        self.check(section, expected)
 
     @pytest.mark.parametrize(
-        ('section', 'expect'),
+        ('section', 'expected'),
         [(name.upper(), name) for name in blurb.SECTIONS],
     )
-    def test_exact_names_uppercase(self, section, expect):
-        self.check(section, expect)
+    def test_exact_names_uppercase(self, section, expected):
+        self.check(section, expected)
 
 
 @pytest.mark.parametrize('section', ['', ' ', '      '])
