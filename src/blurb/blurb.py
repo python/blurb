@@ -834,7 +834,8 @@ def _extract_issue_number(issue, /):
     else:
         stripped = issue.removeprefix('#')
     try:
-        return int(stripped)
+        if stripped.isdecimal():
+            return int(stripped)
     except ValueError:
         pass
 
@@ -842,7 +843,8 @@ def _extract_issue_number(issue, /):
     stripped = issue.removeprefix('https://')
     stripped = stripped.removeprefix('github.com/python/cpython/issues/')
     try:
-        return int(stripped)
+        if stripped.isdecimal():
+            return int(stripped)
     except ValueError:
         pass
 
