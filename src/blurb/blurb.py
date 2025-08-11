@@ -824,25 +824,63 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
-def _template_text_for_temp_file():
+def _extract_issue_number(issue, /):
+    if issue is None:
+        return None
+    issue = issue.strip()
+
+    if issue.startswith(('GH-', 'gh-')):
+        stripped = issue[3:]
+    else:
+        stripped = issue.removeprefix('#')
+    try:
+        return int(stripped)
+    except ValueError:
+        pass
+
+    # Allow GitHub URL with or without the scheme
+    stripped = issue.removeprefix('https://')
+    stripped = stripped.removeprefix('github.com/python/cpython/issues/')
+    try:
+        return int(stripped)
+    except ValueError:
+        pass
+
+    sys.exit(f"Invalid GitHub issue number: {issue}")
+
+
+def _blurb_template_text(*, issue):
+    issue_number = _extract_issue_number(issue)
+
     text = template
 
     # Ensure that there is a trailing space after '.. gh-issue:' to make
-    # filling in the template easier.
+    # filling in the template easier, unless an issue number was given
+    # through the --issue command-line flag.
     issue_line = ".. gh-issue:"
     without_space = "\n" + issue_line + "\n"
-    with_space = "\n" + issue_line + " \n"
     if without_space not in text:
-        sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-    text = text.replace(without_space, with_space)
+        sys.exit("Can't find gh-issue line in the template!")
+    if issue_number is None:
+        with_space = "\n" + issue_line + " \n"
+        text = text.replace(without_space, with_space)
+    else:
+        with_issue_number = f"\n{issue_line} {issue_number}\n"
+        text = text.replace(without_space, with_issue_number)
 
     return text
 
 
 @subcommand
-def add():
+def add(*, issue=None):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+
+Use -i/--issue to specify a GitHub issue number or link, e.g.:
+
+    blurb add -i 12345
+    # or
+    blurb add -i https://github.com/python/cpython/issues/12345
     """
 
     editor = find_editor()
@@ -851,7 +889,7 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     os.close(handle)
     atexit.register(lambda : os.unlink(tmp_path))
 
-    text = _template_text_for_temp_file()
+    text = _blurb_template_text(issue=issue)
     with open(tmp_path, "w", encoding="utf-8") as file:
         file.write(text)
 

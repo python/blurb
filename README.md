@@ -108,6 +108,13 @@ Here's how you interact with the file:
 
 * Add the GitHub issue number for this commit to the
   end of the `.. gh-issue:` line.
+  The issue can also be specified via the ``-i`` / ``--issue`` option:
+
+  ```shell
+  $ blurb add -i 109198
+  # or equivalently
+  $ blurb add -i https://github.com/python/cpython/issues/109198
+  ```
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
   For example, if this should go in the `Library` section, uncomment
