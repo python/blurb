@@ -77,6 +77,30 @@ It opens a text editor on a template; you edit the
 file, save, and exit.  **blurb** then stores the file
 in the correct place, and stages it in Git for you.
 
+#### Automation support
+
+For automated tools and CI systems, `blurb add` supports non-interactive operation:
+
+```bash
+# Add a blurb entry from stdin
+echo 'Added beans to the :mod:`spam` module.' | blurb add \
+    --issue 123456 \
+    --section Library \
+    --rst-on-stdin
+```
+
+When using `--rst-on-stdin`, both `--issue` and `--section` are required.
+
+The `--issue` parameter accepts various formats:
+- Issue number: `--issue 12345`
+- With gh- prefix: `--issue gh-12345`
+- GitHub URL: `--issue https://github.com/python/cpython/issues/12345`
+
+The `--section` parameter supports smart matching:
+- Case insensitive: `--section library` or `--section LIBRARY`
+- Partial matching: `--section lib` (matches "Library")
+- Common aliases: `--section api` (matches "C API"), `--section builtin` (matches "Core and Builtins")
+
 The template for the `blurb add` message looks like this:
 
     #

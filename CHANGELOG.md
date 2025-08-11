@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+* Add automation support to `blurb add` command:
+  * New `--issue` option to specify GitHub issue number (supports URLs and various formats)
+  * New `--section` option to specify NEWS section (with smart case-insensitive matching)
+  * New `--rst-on-stdin` option to read entry content from stdin
+  * Useful for CI systems and automated tools
+* Uses `cyclopts` for command-line parsing instead of rolling our own to reduce our code size, this changes the help format and brings in a dependency.
+
 ## 2.0.0
 
 * Move 'blurb test' subcommand into test suite by @hugovk in https://github.com/python/blurb/pull/37

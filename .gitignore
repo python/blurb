@@ -93,3 +93,9 @@ ENV/
 
 # hatch-vcs
 src/*/_version.py
+
+*.bak
+*.swp
+
+CLAUDE.local.md
+.claude/*
