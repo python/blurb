@@ -9,6 +9,22 @@ UNCHANGED_SECTIONS = (
 )
 
 
+def test_section_names():
+    assert tuple(blurb.sections) == (
+        'Security',
+        'Core and Builtins',
+        'Library',
+        'Documentation',
+        'Tests',
+        'Build',
+        'Windows',
+        'macOS',
+        'IDLE',
+        'Tools/Demos',
+        'C API',
+    )
+
+
 @pytest.mark.parametrize("section", UNCHANGED_SECTIONS)
 def test_sanitize_section_no_change(section):
     sanitized = blurb.sanitize_section(section)
