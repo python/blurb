@@ -817,6 +817,21 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
+def _template_text_for_temp_file():
+    text = template
+
+    # Ensure that there is a trailing space after '.. gh-issue:' to make
+    # filling in the template easier.
+    issue_line = ".. gh-issue:"
+    without_space = "\n" + issue_line + "\n"
+    with_space = "\n" + issue_line + " \n"
+    if without_space not in text:
+        sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
+    text = text.replace(without_space, with_space)
+
+    return text
+
+
 @subcommand
 def add():
     """
@@ -829,24 +844,9 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     os.close(handle)
     atexit.register(lambda : os.unlink(tmp_path))
 
-    def init_tmp_with_template():
-        with open(tmp_path, "wt", encoding="utf-8") as file:
-            # hack:
-            # my editor likes to strip trailing whitespace from lines.
-            # normally this is a good idea.  but in the case of the template
-            # it's unhelpful.
-            # so, manually ensure there's a space at the end of the gh-issue line.
-            text = template
-
-            issue_line = ".. gh-issue:"
-            without_space = "\n" + issue_line + "\n"
-            with_space = "\n" + issue_line + " \n"
-            if without_space not in text:
-                sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-            text = text.replace(without_space, with_space)
-            file.write(text)
-
-    init_tmp_with_template()
+    text = _template_text_for_temp_file()
+    with open(tmp_path, "w", encoding="utf-8") as file:
+        file.write(text)
 
     # We need to be clever about EDITOR.
     # On the one hand, it might be a legitimate path to an
