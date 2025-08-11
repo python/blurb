@@ -68,7 +68,7 @@ def test_valid_issue_number_12345(issue):
     'https://github.com/python/cpython/issues/1234?param=1',
 ))
 def test_invalid_issue_number(issue):
-    error_message = re.escape(f'Invalid GitHub issue: {issue}')
+    error_message = re.escape(f'Invalid GitHub issue number: {issue}')
     with pytest.raises(SystemExit, match=error_message):
         blurb._blurb_template_text(issue=issue)
 
