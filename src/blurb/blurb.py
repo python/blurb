@@ -1140,12 +1140,6 @@ def flush_git_rm_files():
         git_rm_files.clear()
 
 
-# @subcommand
-# def noop():
-#     "Do-nothing command.  Used for blurb smoke-testing."
-#     pass
-
-
 @subcommand
 def populate():
     """
@@ -1173,15 +1167,6 @@ Removes blurb data files, for building release tarballs/installers.
     """
     os.chdir("Misc")
     shutil.rmtree("NEWS.d", ignore_errors=True)
-
-
-
-# @subcommand
-# def arg(*, boolean=False, option=True):
-#    """
-#    Test function for blurb command-line processing.
-#    """
-#    print(f"arg: boolean {boolean} option {option}")
 
 
 def main():
