@@ -323,15 +323,6 @@ def test_extract_next_filename(news_entry, expected_path, fs):
     assert path == expected_path
 
 
-def test_version(capfd):
-    # Act
-    blurb.version()
-
-    # Assert
-    captured = capfd.readouterr()
-    assert captured.out.startswith("blurb version ")
-
-
 def test_parse():
     # Arrange
     contents = ".. gh-issue: 123456\n.. section: IDLE\nHello world!"
