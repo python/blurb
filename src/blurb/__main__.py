@@ -1,6 +1,6 @@
 """Run blurb using ``python3 -m blurb``."""
-from blurb import blurb
+from blurb._cli import main
 
 
 if __name__ == '__main__':
-    blurb.main()
+    main()
