@@ -58,92 +58,13 @@ import textwrap
 import time
 
 from blurb._cli import main, subcommand
-
-
-#
-# This template is the canonical list of acceptable section names!
-# It's parsed internally into the "sections" set.
-#
-
-template = """
-
-#
-# Please enter the relevant GitHub issue number here:
-#
-.. gh-issue:
-
-#
-# Uncomment one of these "section:" lines to specify which section
-# this entry should go in in Misc/NEWS.d.
-#
-#.. section: Security
-#.. section: Core and Builtins
-#.. section: Library
-#.. section: Documentation
-#.. section: Tests
-#.. section: Build
-#.. section: Windows
-#.. section: macOS
-#.. section: IDLE
-#.. section: Tools/Demos
-#.. section: C API
-
-# Write your Misc/NEWS.d entry below.  It should be a simple ReST paragraph.
-# Don't start with "- Issue #<n>: " or "- gh-issue-<n>: " or that sort of stuff.
-###########################################################################
-
-
-""".lstrip()
+from blurb._template import (
+    next_filename_unsanitize_sections, sanitize_section,
+    sanitize_section_legacy, sections, template, unsanitize_section,
+)
 
 root = None  # Set by chdir_to_repo_root()
 original_dir = None
-sections = []
-
-for line in template.split('\n'):
-    line = line.strip()
-    prefix, found, section = line.partition("#.. section: ")
-    if found and not prefix:
-        sections.append(section.strip())
-
-
-_sanitize_section = {
-    "C API": "C_API",
-    "Core and Builtins": "Core_and_Builtins",
-    "Tools/Demos": "Tools-Demos",
-    }
-
-
-def sanitize_section(section):
-    """
-    Clean up a section string, making it viable as a directory name.
-    """
-    return _sanitize_section.get(section, section)
-
-
-def sanitize_section_legacy(section):
-    """
-    Clean up a section string, making it viable as a directory name (allow spaces).
-    """
-    return section.replace("/", "-")
-
-
-_unsanitize_section = {
-    "C_API": "C API",
-    "Core_and_Builtins": "Core and Builtins",
-    "Tools-Demos": "Tools/Demos",
-    }
-
-
-def unsanitize_section(section):
-    return _unsanitize_section.get(section, section)
-
-def next_filename_unsanitize_sections(filename):
-    for key, value in _unsanitize_section.items():
-        for separator in "/\\":
-            key = f"{separator}{key}{separator}"
-            value = f"{separator}{value}{separator}"
-            filename = filename.replace(key, value)
-    return filename
 
 
 def textwrap_body(body, *, subsequent_indent=''):
