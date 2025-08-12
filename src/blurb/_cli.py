@@ -10,7 +10,7 @@ import blurb
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import TypeAlias
+    from typing import NoReturn, TypeAlias
 
     CommandFunc: TypeAlias = Callable[..., None]
 
@@ -19,8 +19,12 @@ subcommands: dict[str, CommandFunc] = {}
 readme_re = re.compile(r'This is \w+ version \d+\.\d+').match
 
 
-def error(msg: str, /):
+def error(msg: str, /) -> NoReturn:
     raise SystemExit(f'Error: {msg}')
+
+
+def prompt(prompt: str, /) -> str:
+    return input(f'[{prompt}> ')
 
 
 def subcommand(fn: CommandFunc):
