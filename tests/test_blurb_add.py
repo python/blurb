@@ -3,9 +3,10 @@ import re
 import pytest
 
 import blurb._add
-import blurb._template
 from blurb._add import (_blurb_template_text, _extract_issue_number,
                         _extract_section_name)
+from blurb._template import sections as SECTIONS, template as blurb_template
+
 
 def test_valid_no_issue_number():
     assert _extract_issue_number(None) is None
@@ -81,7 +82,7 @@ def test_invalid_issue_number(issue):
     'gh-issue',
 ))
 def test_malformed_gh_issue_line(invalid, monkeypatch):
-    template = blurb._add.template.replace('.. gh-issue:', invalid)
+    template = blurb_template.replace('.. gh-issue:', invalid)
     error_message = re.escape("Can't find gh-issue line in the template!")
     with monkeypatch.context() as cm:
         cm.setattr(blurb._add, 'template', template)
@@ -95,7 +96,7 @@ def _check_section_name(section_name, expected):
 
     res = _blurb_template_text(issue=None, section=section_name)
     res = res.splitlines()
-    for section_name in blurb._template.sections:
+    for section_name in SECTIONS:
         if section_name == expected:
             assert f'.. section: {section_name}' in res
         else:
@@ -105,7 +106,7 @@ def _check_section_name(section_name, expected):
 
 @pytest.mark.parametrize(
     ('section_name', 'expected'),
-    [(name, name) for name in blurb._template.sections],
+    [(name, name) for name in SECTIONS],
 )
 def test_exact_names(section_name, expected):
     _check_section_name(section_name, expected)
@@ -113,7 +114,7 @@ def test_exact_names(section_name, expected):
 
 @pytest.mark.parametrize(
     ('section_name', 'expected'),
-    [(name.lower(), name) for name in blurb._template.sections],
+    [(name.lower(), name) for name in SECTIONS],
 )
 def test_exact_names_lowercase(section_name, expected):
     _check_section_name(section_name, expected)
