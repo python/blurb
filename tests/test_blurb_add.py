@@ -2,12 +2,14 @@ import re
 
 import pytest
 
-from blurb import blurb
-
+import blurb._add
+import blurb._template
+from blurb._add import (_blurb_template_text, _extract_issue_number,
+                        _extract_section_name)
 
 def test_valid_no_issue_number():
-    assert blurb._extract_issue_number(None) is None
-    res = blurb._blurb_template_text(issue=None, section=None)
+    assert _extract_issue_number(None) is None
+    res = _blurb_template_text(issue=None, section=None)
     lines = frozenset(res.splitlines())
     assert '.. gh-issue:' not in lines
     assert '.. gh-issue: ' in lines
@@ -34,10 +36,10 @@ def test_valid_no_issue_number():
     ' https://github.com/python/cpython/issues/12345  ',
 ))
 def test_valid_issue_number_12345(issue):
-    actual = blurb._extract_issue_number(issue)
+    actual = _extract_issue_number(issue)
     assert actual == 12345
 
-    res = blurb._blurb_template_text(issue=issue, section=None)
+    res = _blurb_template_text(issue=issue, section=None)
     lines = frozenset(res.splitlines())
     assert '.. gh-issue:' not in lines
     assert '.. gh-issue: ' not in lines
@@ -70,7 +72,7 @@ def test_valid_issue_number_12345(issue):
 def test_invalid_issue_number(issue):
     error_message = re.escape(f'Invalid GitHub issue number: {issue}')
     with pytest.raises(SystemExit, match=error_message):
-        blurb._blurb_template_text(issue=issue, section=None)
+        _blurb_template_text(issue=issue, section=None)
 
 
 @pytest.mark.parametrize('invalid', (
@@ -79,21 +81,21 @@ def test_invalid_issue_number(issue):
     'gh-issue',
 ))
 def test_malformed_gh_issue_line(invalid, monkeypatch):
-    template = blurb.template.replace('.. gh-issue:', invalid)
+    template = blurb._add.template.replace('.. gh-issue:', invalid)
     error_message = re.escape("Can't find gh-issue line in the template!")
     with monkeypatch.context() as cm:
-        cm.setattr(blurb, 'template', template)
+        cm.setattr(blurb._add, 'template', template)
         with pytest.raises(SystemExit, match=error_message):
-            blurb._blurb_template_text(issue='1234', section=None)
+            _blurb_template_text(issue='1234', section=None)
 
 
 def _check_section_name(section_name, expected):
-    actual = blurb._extract_section_name(section_name)
+    actual = _extract_section_name(section_name)
     assert actual == expected
 
-    res = blurb._blurb_template_text(issue=None, section=section_name)
+    res = _blurb_template_text(issue=None, section=section_name)
     res = res.splitlines()
-    for section_name in blurb.sections:
+    for section_name in blurb._template.sections:
         if section_name == expected:
             assert f'.. section: {section_name}' in res
         else:
@@ -103,7 +105,7 @@ def _check_section_name(section_name, expected):
 
 @pytest.mark.parametrize(
     ('section_name', 'expected'),
-    [(name, name) for name in blurb.sections],
+    [(name, name) for name in blurb._template.sections],
 )
 def test_exact_names(section_name, expected):
     _check_section_name(section_name, expected)
@@ -111,7 +113,7 @@ def test_exact_names(section_name, expected):
 
 @pytest.mark.parametrize(
     ('section_name', 'expected'),
-    [(name.lower(), name) for name in blurb.sections],
+    [(name.lower(), name) for name in blurb._template.sections],
 )
 def test_exact_names_lowercase(section_name, expected):
     _check_section_name(section_name, expected)
@@ -128,10 +130,10 @@ def test_exact_names_lowercase(section_name, expected):
 def test_empty_section_name(section):
     error_message = re.escape('Empty section name!')
     with pytest.raises(SystemExit, match=error_message):
-        blurb._extract_section_name(section)
+        _extract_section_name(section)
 
     with pytest.raises(SystemExit, match=error_message):
-        blurb._blurb_template_text(issue=None, section=section)
+        _blurb_template_text(issue=None, section=section)
 
 
 @pytest.mark.parametrize('section', [
@@ -157,7 +159,7 @@ def test_empty_section_name(section):
 def test_invalid_section_name(section):
     error_message = rf"(?m)Invalid section name: '{re.escape(section)}'\n\n.+"
     with pytest.raises(SystemExit, match=error_message):
-        blurb._extract_section_name(section)
+        _extract_section_name(section)
 
     with pytest.raises(SystemExit, match=error_message):
-        blurb._blurb_template_text(issue=None, section=section)
+        _blurb_template_text(issue=None, section=section)
