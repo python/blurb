@@ -766,7 +766,14 @@ If subcommand is not specified, prints one-line summaries for every command.
     for name, p in inspect.signature(fn).parameters.items():
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
             short_option = name[0]
-            options.append(f" [-{short_option}|--{name}]")
+            if isinstance(p.default, bool):
+                options.append(f" [-{short_option}|--{name}]")
+            else:
+                if p.default is None:
+                    metavar = f'{name.upper()}'
+                else:
+                    metavar = f'{name.upper()}[={p.default}]'
+                options.append(f" [-{short_option}|--{name} {metavar}]")
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             positionals.append(" ")
             has_default = (p.default != inspect._empty)
@@ -817,25 +824,65 @@ def find_editor():
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
-def _template_text_for_temp_file():
+def _extract_issue_number(issue, /):
+    if issue is None:
+        return None
+    issue = issue.strip()
+
+    if issue.startswith(('GH-', 'gh-')):
+        stripped = issue[3:]
+    else:
+        stripped = issue.removeprefix('#')
+    try:
+        if stripped.isdecimal():
+            return int(stripped)
+    except ValueError:
+        pass
+
+    # Allow GitHub URL with or without the scheme
+    stripped = issue.removeprefix('https://')
+    stripped = stripped.removeprefix('github.com/python/cpython/issues/')
+    try:
+        if stripped.isdecimal():
+            return int(stripped)
+    except ValueError:
+        pass
+
+    sys.exit(f"Invalid GitHub issue number: {issue}")
+
+
+def _blurb_template_text(*, issue):
+    issue_number = _extract_issue_number(issue)
+
     text = template
 
     # Ensure that there is a trailing space after '.. gh-issue:' to make
-    # filling in the template easier.
+    # filling in the template easier, unless an issue number was given
+    # through the --issue command-line flag.
     issue_line = ".. gh-issue:"
     without_space = "\n" + issue_line + "\n"
-    with_space = "\n" + issue_line + " \n"
     if without_space not in text:
-        sys.exit("Can't find gh-issue line to ensure there's a space on the end!")
-    text = text.replace(without_space, with_space)
+        sys.exit("Can't find gh-issue line in the template!")
+    if issue_number is None:
+        with_space = "\n" + issue_line + " \n"
+        text = text.replace(without_space, with_space)
+    else:
+        with_issue_number = f"\n{issue_line} {issue_number}\n"
+        text = text.replace(without_space, with_issue_number)
 
     return text
 
 
 @subcommand
-def add():
+def add(*, issue=None):
     """
 Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+
+Use -i/--issue to specify a GitHub issue number or link, e.g.:
+
+    blurb add -i 12345
+    # or
+    blurb add -i https://github.com/python/cpython/issues/12345
     """
 
     editor = find_editor()
@@ -844,7 +891,7 @@ Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
     os.close(handle)
     atexit.register(lambda : os.unlink(tmp_path))
 
-    text = _template_text_for_temp_file()
+    text = _blurb_template_text(issue=issue)
     with open(tmp_path, "w", encoding="utf-8") as file:
         file.write(text)
 
@@ -1169,22 +1216,37 @@ def main():
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                assert isinstance(p.default, bool), "blurb command-line processing only handles boolean options"
+                if (p.default is not None
+                        and not isinstance(p.default, (bool, str))):
+                    sys.exit("blurb command-line processing cannot handle "
+                             f"options of type {type(p.default).__qualname__}")
+
                 kwargs[name] = p.default
                 short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []
         done_with_options = False
+        consume_after = None
 
         def handle_option(s, dict):
+            nonlocal consume_after
             name = dict.get(s, None)
             if not name:
                 sys.exit(f'blurb: Unknown option for {subcommand}: "{s}"')
-            kwargs[name] = not kwargs[name]
+
+            value = kwargs[name]
+            if isinstance(value, bool):
+                kwargs[name] = not value
+            else:
+                consume_after = name
 
         # print(f"short_options {short_options} long_options {long_options}")
         for a in args:
+            if consume_after:
+                kwargs[consume_after] = a
+                consume_after = None
+                continue
             if done_with_options:
                 filtered_args.append(a)
                 continue
@@ -1199,6 +1261,9 @@ def main():
                 continue
             filtered_args.append(a)
 
+        if consume_after:
+            sys.exit(f"Error: blurb: {subcommand} {consume_after} "
+                     f"must be followed by an option argument")
 
         sys.exit(fn(*filtered_args, **kwargs))
     except TypeError as e:
