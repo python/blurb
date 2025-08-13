@@ -3,8 +3,8 @@ import os
 
 import pytest
 
+from blurb._blurb_file import Blurbs
 from blurb._versions import chdir
-from blurb.blurb import Blurbs
 
 
 class TestParserPasses:

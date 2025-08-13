@@ -2,9 +2,10 @@ import os
 import sys
 from pathlib import Path
 
+from blurb._blurb_file import Blurbs
 from blurb._cli import require_ok, subcommand
 from blurb._versions import glob_versions, printable_version
-from blurb.blurb import Blurbs, glob_blurbs, textwrap_body
+from blurb.blurb import glob_blurbs, textwrap_body
 
 original_dir: str = os.getcwd()
 
