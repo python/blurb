@@ -40,13 +40,10 @@
 # automatic git adds and removes
 
 import base64
-import builtins
 import glob
 import hashlib
-import io
 import itertools
 import os
-from pathlib import Path
 import re
 import shutil
 import sys
@@ -55,13 +52,9 @@ import time
 
 from blurb._cli import main, subcommand
 from blurb._git import git_add_files, flush_git_add_files
-from blurb._template import (
-    next_filename_unsanitize_sections, sanitize_section,
-    sanitize_section_legacy, sections, unsanitize_section,
-)
+from blurb._template import sanitize_section, sections, unsanitize_section
 
 root = None  # Set by chdir_to_repo_root()
-original_dir = None
 
 
 def textwrap_body(body, *, subsequent_indent=''):
@@ -157,102 +150,9 @@ def sortable_datetime():
     return time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 
 
-def require_ok(prompt):
-    prompt = f"[{prompt}> "
-    while True:
-        s = input(prompt).strip()
-        if s == 'ok':
-            return s
-
-class pushd:
-    def __init__(self, path):
-        self.path = path
-
-    def __enter__(self):
-        self.previous_cwd = os.getcwd()
-        os.chdir(self.path)
-
-    def __exit__(self, *args):
-        os.chdir(self.previous_cwd)
-
-
-def version_key(element):
-    fields = list(element.split("."))
-    if len(fields) == 1:
-        return element
-
-    # in sorted order,
-    # 3.5.0a1 < 3.5.0b1 < 3.5.0rc1 < 3.5.0
-    # so for sorting purposes we transform
-    # "3.5." and "3.5.0" into "3.5.0zz0"
-    last = fields.pop()
-    for s in ("a", "b", "rc"):
-        if s in last:
-            last, stage, stage_version = last.partition(s)
-            break
-    else:
-        stage = 'zz'
-        stage_version = "0"
-
-    fields.append(last)
-    while len(fields) < 3:
-        fields.append("0")
-
-    fields.extend([stage, stage_version])
-    fields = [s.rjust(6, "0") for s in fields]
-
-    return ".".join(fields)
-
-
 def nonceify(body):
     digest = hashlib.md5(body.encode("utf-8")).digest()
     return base64.urlsafe_b64encode(digest)[0:6].decode('ascii')
-
-
-def glob_versions():
-    with pushd("Misc/NEWS.d"):
-        versions = []
-        for wildcard in ("2.*.rst", "3.*.rst", "next"):
-            files = [x.partition(".rst")[0] for x in glob.glob(wildcard)]
-            versions.extend(files)
-    xform = [version_key(x) for x in versions]
-    xform.sort(reverse=True)
-    versions = sorted(versions, key=version_key, reverse=True)
-    return versions
-
-
-def glob_blurbs(version):
-    filenames = []
-    base = os.path.join("Misc", "NEWS.d", version)
-    if version != "next":
-        wildcard = base + ".rst"
-        filenames.extend(glob.glob(wildcard))
-    else:
-        sanitized_sections = (
-                {sanitize_section(section) for section in sections} |
-                {sanitize_section_legacy(section) for section in sections}
-        )
-        for section in sanitized_sections:
-            wildcard = os.path.join(base, section, "*.rst")
-            entries = glob.glob(wildcard)
-            deletables = [x for x in entries if x.endswith("/README.rst")]
-            for filename in deletables:
-                entries.remove(filename)
-            filenames.extend(entries)
-    filenames.sort(reverse=True, key=next_filename_unsanitize_sections)
-    return filenames
-
-
-def printable_version(version):
-    if version == "next":
-        return version
-    if "a" in version:
-        return version.replace("a", " alpha ")
-    if "b" in version:
-        return version.replace("b", " beta ")
-    if "rc" in version:
-        return version.replace("rc", " release candidate ")
-    return version + " final"
 
 
 class BlurbError(RuntimeError):
@@ -533,7 +433,6 @@ Broadly equivalent to blurb.parse(open(filename).read()).
             del metadata[name]
         return path
 
-
     def save_next(self):
         assert len(self) == 1
         blurb = type(self)()
@@ -548,129 +447,6 @@ Broadly equivalent to blurb.parse(open(filename).read()).
 def error(*a):
     s = " ".join(str(x) for x in a)
     sys.exit("Error: " + s)
-
-
-def _find_blurb_dir():
-    if os.path.isdir("blurb"):
-        return "blurb"
-    for path in glob.iglob("blurb-*"):
-        if os.path.isdir(path):
-            return path
-    return None
-
-
-@subcommand
-def merge(output=None, *, forced=False):
-    """
-Merge all blurbs together into a single Misc/NEWS file.
-
-Optional output argument specifies where to write to.
-Default is <cpython-root>/Misc/NEWS.
-
-If overwriting, blurb merge will prompt you to make sure it's okay.
-To force it to overwrite, use -f.
-    """
-    if output:
-        output = os.path.join(original_dir, output)
-    else:
-        output = "Misc/NEWS"
-
-    versions = glob_versions()
-    if not versions:
-        sys.exit("You literally don't have ANY blurbs to merge together!")
-
-    if os.path.exists(output) and not forced:
-        builtins.print("You already have a", repr(output), "file.")
-        require_ok("Type ok to overwrite")
-
-    write_news(output, versions=versions)
-
-
-def write_news(output, *, versions):
-    buff = io.StringIO()
-
-    def print(*a, sep=" "):
-        s = sep.join(str(x) for x in a)
-        return builtins.print(s, file=buff)
-
-    print ("""
-+++++++++++
-Python News
-+++++++++++
-
-""".strip())
-
-    for version in versions:
-        filenames = glob_blurbs(version)
-
-        blurbs = Blurbs()
-        if version == "next":
-            for filename in filenames:
-                if os.path.basename(filename) == "README.rst":
-                    continue
-                blurbs.load_next(filename)
-            if not blurbs:
-                continue
-            metadata = blurbs[0][0]
-            metadata['release date'] = "XXXX-XX-XX"
-        else:
-            assert len(filenames) == 1
-            blurbs.load(filenames[0])
-
-        header = "What's New in Python " + printable_version(version) + "?"
-        print()
-        print(header)
-        print("=" * len(header))
-        print()
-
-
-        metadata, body = blurbs[0]
-        release_date = metadata["release date"]
-
-        print(f"*Release date: {release_date}*")
-        print()
-
-        if "no changes" in metadata:
-            print(body)
-            print()
-            continue
-
-        last_section = None
-        for metadata, body in blurbs:
-            section = metadata['section']
-            if last_section != section:
-                last_section = section
-                print(section)
-                print("-" * len(section))
-                print()
-            if metadata.get("gh-issue"):
-                issue_number = metadata['gh-issue']
-                if int(issue_number):
-                    body = "gh-" + issue_number + ": " + body
-            elif metadata.get("bpo"):
-                issue_number = metadata['bpo']
-                if int(issue_number):
-                    body = "bpo-" + issue_number + ": " + body
-
-            body = "- " + body
-            text = textwrap_body(body, subsequent_indent='  ')
-            print(text)
-    print()
-    print("**(For information about older versions, consult the HISTORY file.)**")
-
-
-    new_contents = buff.getvalue()
-
-    # Only write in `output` if the contents are different
-    # This speeds up subsequent Sphinx builds
-    try:
-        previous_contents = Path(output).read_text(encoding="UTF-8")
-    except (FileNotFoundError, UnicodeError):
-        previous_contents = None
-    if new_contents != previous_contents:
-        Path(output).write_text(new_contents, encoding="UTF-8")
-    else:
-        builtins.print(output, "is already up to date")
 
 
 @subcommand
