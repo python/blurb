@@ -474,14 +474,5 @@ def error(*a):
     sys.exit("Error: " + s)
 
 
-@subcommand
-def export():
-    """
-Removes blurb data files, for building release tarballs/installers.
-    """
-    os.chdir("Misc")
-    shutil.rmtree("NEWS.d", ignore_errors=True)
-
-
 if __name__ == '__main__':
     main()
