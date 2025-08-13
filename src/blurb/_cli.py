@@ -5,7 +5,7 @@ import os
 import re
 import sys
 
-import blurb
+import blurb.blurb
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -298,5 +298,5 @@ def chdir_to_repo_root() -> str:
 
         break
 
-    blurb.root = path
+    blurb.blurb.root = path
     return path

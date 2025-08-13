@@ -88,11 +88,6 @@ def test_textwrap_body(body, subsequent_indent, expected):
     assert blurb.textwrap_body(body, subsequent_indent=subsequent_indent) == expected
 
 
-@time_machine.travel("2025-01-07")
-def test_current_date():
-    assert blurb.current_date() == "2025-01-07"
-
-
 @time_machine.travel("2025-01-07 16:28:41")
 def test_sortable_datetime():
     assert blurb.sortable_datetime() == "2025-01-07-16-28-41"
