@@ -45,13 +45,10 @@ import hashlib
 import itertools
 import os
 import re
-import shutil
 import sys
 import textwrap
 import time
 
-from blurb._cli import main, subcommand
-from blurb._git import git_add_files, flush_git_add_files
 from blurb._template import (
     next_filename_unsanitize_sections, sanitize_section,
     sanitize_section_legacy, sections, unsanitize_section,
@@ -475,4 +472,6 @@ def error(*a):
 
 
 if __name__ == '__main__':
+    from blurb._cli import main
+
     main()
