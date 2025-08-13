@@ -83,7 +83,8 @@ import os
 import re
 
 from blurb._template import sanitize_section, sections, unsanitize_section
-from blurb.blurb import BlurbError, textwrap_body, sortable_datetime, nonceify
+from blurb._utils.text import textwrap_body
+from blurb.blurb import BlurbError, sortable_datetime, nonceify
 
 root = None  # Set by chdir_to_repo_root()
 lowest_possible_gh_issue_number = 32426
