@@ -28,7 +28,7 @@ def prompt(prompt: str, /) -> str:
 
 
 def require_ok(prompt: str, /) -> str:
-    prompt = f"[{prompt}> "
+    prompt = f'[{prompt}> '
     while True:
         s = input(prompt).strip()
         if s == 'ok':
@@ -88,7 +88,7 @@ def help(subcommand: str | None = None) -> None:
                 options.append(f' [-{short_option}|--{name} {metavar}]')
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
             positionals.append(' ')
-            has_default = (p.default != inspect._empty)
+            has_default = p.default != inspect._empty
             if has_default:
                 positionals.append('[')
                 nesting += 1
@@ -146,7 +146,6 @@ def _blurb_help() -> None:
 
 
 def main() -> None:
-
     args = sys.argv[1:]
 
     if not args:
@@ -165,6 +164,7 @@ def main() -> None:
         raise SystemExit(fn(*args))
 
     import blurb._merge
+
     blurb._merge.original_dir = os.getcwd()
     try:
         chdir_to_repo_root()
@@ -177,8 +177,7 @@ def main() -> None:
         kwargs = {}
         for name, p in inspect.signature(fn).parameters.items():
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
-                if (p.default is not None
-                        and not isinstance(p.default, (bool, str))):
+                if p.default is not None and not isinstance(p.default, (bool, str)):
                     raise SystemExit(
                         'blurb command-line processing cannot handle '
                         f'options of type {type(p.default).__qualname__}'
@@ -262,7 +261,9 @@ def main() -> None:
             if total != 1:
                 middle += 's'
 
-        print(f'Error: Wrong number of arguments!\n\nblurb {subcommand} {middle},\nand you specified {how_many}.')
+        print(
+            f'Error: Wrong number of arguments!\n\nblurb {subcommand} {middle},\nand you specified {how_many}.'
+        )
         print()
         print('usage: ', end='')
         help(subcommand)
@@ -293,11 +294,13 @@ def chdir_to_repo_root() -> str:
                     return False
             return True
 
-        if not (test_first_line('README', readme_re)
-            or test_first_line('README.rst', readme_re)):
+        if not (
+            test_first_line('README', readme_re)
+            or test_first_line('README.rst', readme_re)
+        ):
             continue
 
-        if not test_first_line('LICENSE',  'A. HISTORY OF THE SOFTWARE'.__eq__):
+        if not test_first_line('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
             continue
         if not os.path.exists('Include/Python.h'):
             continue
@@ -307,5 +310,6 @@ def chdir_to_repo_root() -> str:
         break
 
     import blurb._blurb_file
+
     blurb._blurb_file.root = path
     return path

@@ -9,7 +9,7 @@ import sys
 import tempfile
 
 from blurb._blurb_file import BlurbError, Blurbs
-from blurb._cli import subcommand,error,prompt
+from blurb._cli import error, prompt, subcommand
 from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sections, template
 
@@ -43,11 +43,11 @@ def add(*, issue: str | None = None, section: str | None = None):
     spaces in names can be substituted for underscores:
 
 {sections}
-    """
+    """  # fmt: skip
 
     handle, tmp_path = tempfile.mkstemp('.rst')
     os.close(handle)
-    atexit.register(lambda : os.unlink(tmp_path))
+    atexit.register(lambda: os.unlink(tmp_path))
 
     text = _blurb_template_text(issue=issue, section=section)
     with open(tmp_path, 'w', encoding='utf-8') as file:
@@ -72,6 +72,8 @@ def add(*, issue: str | None = None, section: str | None = None):
     git_add_files.append(path)
     flush_git_add_files()
     print('Ready for commit.')
+
+
 add.__doc__ = add.__doc__.format(sections='\n'.join(f'* {s}' for s in sections))
 
 
@@ -178,13 +180,13 @@ def _extract_section_name(section: str | None, /) -> str | None:
 
     if not matches:
         section_list = '\n'.join(f'* {s}' for s in sections)
-        raise SystemExit(f'Invalid section name: {section!r}\n\n'
-                         f'Valid names are:\n\n{section_list}')
+        raise SystemExit(
+            f'Invalid section name: {section!r}\n\nValid names are:\n\n{section_list}'
+        )
 
     if len(matches) > 1:
         multiple_matches = ', '.join(f'* {m}' for m in sorted(matches))
-        raise SystemExit(f'More than one match for {section!r}:\n\n'
-                         f'{multiple_matches}')
+        raise SystemExit(f'More than one match for {section!r}:\n\n{multiple_matches}')
 
     return matches[0]
 

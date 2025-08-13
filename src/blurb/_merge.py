@@ -43,12 +43,14 @@ def write_news(output: str, *, versions: list[str]) -> None:
     def prnt(msg: str = '', /):
         buff.append(msg)
 
-    prnt("""
+    prnt(
+        """
 +++++++++++
 Python News
 +++++++++++
 
-""".strip())
+""".strip()
+    )
 
     for version in versions:
         filenames = glob_blurbs(version)
