@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 
 The format of a blurb file:
@@ -78,6 +76,8 @@ blurb in a blurb file.
       * That entry's gh-issue number must be 0.
 
 """
+
+from __future__ import annotations
 
 import os
 import re

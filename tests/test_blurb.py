@@ -150,5 +150,3 @@ def test_glob_blurbs_sort_order(fs):
 
     # Assert
     assert filenames == expected
-
-
