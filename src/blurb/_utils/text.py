@@ -48,7 +48,7 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
                 indents = itertools.chain(
                     itertools.repeat(initial, 1),
                     itertools.repeat(subsequent),
-                    )
+                )
                 lines = [indent + line for indent, line in zip(indents, lines)]
                 paragraph = '\n'.join(lines)
             paragraphs2.append(paragraph)
@@ -88,8 +88,12 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
             # twice, so it's stable, and this means occasionally it'll
             # convert two spaces to one space, no big deal.
 
-            paragraph = '\n'.join(textwrap.wrap(paragraph.strip(), width=76, **kwargs)).rstrip()
-            paragraph = '\n'.join(textwrap.wrap(paragraph.strip(), width=76, **kwargs)).rstrip()
+            paragraph = '\n'.join(
+                textwrap.wrap(paragraph.strip(), width=76, **kwargs)
+            ).rstrip()
+            paragraph = '\n'.join(
+                textwrap.wrap(paragraph.strip(), width=76, **kwargs)
+            ).rstrip()
             paragraphs2.append(paragraph)
         # don't reflow literal code blocks (I hope)
         dont_reflow = paragraph.endswith('::')

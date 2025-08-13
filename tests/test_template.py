@@ -1,10 +1,9 @@
 import pytest
+
 import blurb._template
 from blurb._template import sanitize_section, unsanitize_section
 
-UNCHANGED_SECTIONS = (
-    "Library",
-)
+UNCHANGED_SECTIONS = ('Library',)
 
 
 def test_section_names():
@@ -23,18 +22,18 @@ def test_section_names():
     )
 
 
-@pytest.mark.parametrize("section", UNCHANGED_SECTIONS)
+@pytest.mark.parametrize('section', UNCHANGED_SECTIONS)
 def test_sanitize_section_no_change(section):
     sanitized = sanitize_section(section)
     assert sanitized == section
 
 
 @pytest.mark.parametrize(
-    "section, expected",
+    'section, expected',
     (
-        ("C API", "C_API"),
-        ("Core and Builtins", "Core_and_Builtins"),
-        ("Tools/Demos", "Tools-Demos"),
+        ('C API', 'C_API'),
+        ('Core and Builtins', 'Core_and_Builtins'),
+        ('Tools/Demos', 'Tools-Demos'),
     ),
 )
 def test_sanitize_section_changed(section, expected):
@@ -42,17 +41,15 @@ def test_sanitize_section_changed(section, expected):
     assert sanitized == expected
 
 
-@pytest.mark.parametrize("section", UNCHANGED_SECTIONS)
+@pytest.mark.parametrize('section', UNCHANGED_SECTIONS)
 def test_unsanitize_section_no_change(section):
     unsanitized = unsanitize_section(section)
     assert unsanitized == section
 
 
 @pytest.mark.parametrize(
-    "section, expected",
-    (
-        ("Tools-Demos", "Tools/Demos"),
-    ),
+    'section, expected',
+    (('Tools-Demos', 'Tools/Demos'),),
 )
 def test_unsanitize_section_changed(section, expected):
     unsanitized = unsanitize_section(section)

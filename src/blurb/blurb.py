@@ -43,8 +43,8 @@ import sys
 
 
 def error(*a):
-    s = " ".join(str(x) for x in a)
-    sys.exit("Error: " + s)
+    s = ' '.join(str(x) for x in a)
+    sys.exit('Error: ' + s)
 
 
 if __name__ == '__main__':

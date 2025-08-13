@@ -6,8 +6,12 @@ import time
 import blurb._blurb_file
 from blurb._blurb_file import Blurbs
 from blurb._cli import error, subcommand
-from blurb._git import (flush_git_add_files, flush_git_rm_files,
-                        git_rm_files, git_add_files)
+from blurb._git import (
+    flush_git_add_files,
+    flush_git_rm_files,
+    git_add_files,
+    git_rm_files,
+)
 from blurb._utils.globs import glob_blurbs
 from blurb._utils.text import generate_nonce
 
@@ -25,7 +29,9 @@ def release(version: str) -> None:
 
     existing_filenames = glob_blurbs(version)
     if existing_filenames:
-        error("Sorry, can't handle appending 'next' files to an existing version (yet).")
+        error(
+            "Sorry, can't handle appending 'next' files to an existing version (yet)."
+        )
 
     output = f'Misc/NEWS.d/{version}.rst'
     filenames = glob_blurbs('next')
@@ -35,7 +41,13 @@ def release(version: str) -> None:
     if not filenames:
         print(f'No blurbs found.  Setting {version} as having no changes.')
         body = f'There were no new changes in version {version}.\n'
-        metadata = {'no changes': 'True', 'gh-issue': '0', 'section': 'Library', 'date': date, 'nonce': generate_nonce(body)}
+        metadata = {
+            'no changes': 'True',
+            'gh-issue': '0',
+            'section': 'Library',
+            'date': date,
+            'nonce': generate_nonce(body),
+        }
         blurbs.append((metadata, body))
     else:
         count = len(filenames)

@@ -2,8 +2,10 @@ import glob
 import os
 
 from blurb._template import (
-    next_filename_unsanitize_sections, sanitize_section,
-    sanitize_section_legacy, sections,
+    next_filename_unsanitize_sections,
+    sanitize_section,
+    sanitize_section_legacy,
+    sections,
 )
 
 

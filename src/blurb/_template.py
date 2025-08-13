@@ -52,7 +52,7 @@ _unsanitize_section = {
     'C_API': 'C API',
     'Core_and_Builtins': 'Core and Builtins',
     'Tools-Demos': 'Tools/Demos',
-    }
+}
 
 
 def sanitize_section(section: str, /) -> str:
