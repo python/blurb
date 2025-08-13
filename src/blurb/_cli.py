@@ -27,6 +27,14 @@ def prompt(prompt: str, /) -> str:
     return input(f'[{prompt}> ')
 
 
+def require_ok(prompt: str, /) -> str:
+    prompt = f"[{prompt}> "
+    while True:
+        s = input(prompt).strip()
+        if s == 'ok':
+            return s
+
+
 def subcommand(fn: CommandFunc):
     global subcommands
     subcommands[fn.__name__] = fn
@@ -138,7 +146,6 @@ def _blurb_help() -> None:
 
 
 def main() -> None:
-    global original_dir
 
     args = sys.argv[1:]
 
@@ -157,8 +164,9 @@ def main() -> None:
     if fn in (help, version):
         raise SystemExit(fn(*args))
 
+    import blurb._merge
+    blurb._merge.original_dir = os.getcwd()
     try:
-        original_dir = os.getcwd()
         chdir_to_repo_root()
 
         # map keyword arguments to options
