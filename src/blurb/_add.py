@@ -8,11 +8,10 @@ import subprocess
 import sys
 import tempfile
 
-from blurb._blurb_file import Blurbs
+from blurb._blurb_file import BlurbError, Blurbs
 from blurb._cli import subcommand,error,prompt
 from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sections, template
-from blurb.blurb import BlurbError
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

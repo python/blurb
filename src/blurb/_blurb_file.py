@@ -81,13 +81,17 @@ from __future__ import annotations
 
 import os
 import re
+import time
 
 from blurb._template import sanitize_section, sections, unsanitize_section
-from blurb._utils.text import textwrap_body
-from blurb.blurb import BlurbError, sortable_datetime, nonceify
+from blurb._utils.text import generate_nonce, textwrap_body
 
 root = None  # Set by chdir_to_repo_root()
 lowest_possible_gh_issue_number = 32426
+
+
+class BlurbError(RuntimeError):
+    pass
 
 
 class Blurbs(list):
@@ -258,7 +262,7 @@ class Blurbs(list):
             ('gh-issue', '0'),
             ('bpo', '0'),
             ('date', sortable_datetime()),
-            ('nonce', nonceify(body)),
+            ('nonce', generate_nonce(body)),
             ):
             if name not in metadata:
                 metadata[name] = default
@@ -287,3 +291,7 @@ class Blurbs(list):
         filename = blurb._extract_next_filename()
         blurb.save(filename)
         return filename
+
+
+def sortable_datetime() -> str:
+    return time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())

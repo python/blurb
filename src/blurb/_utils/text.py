@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import itertools
 import textwrap
 
@@ -97,3 +99,8 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
     if not text.endswith('\n'):
         text += '\n'
     return text
+
+
+def generate_nonce(body: str) -> str:
+    digest = hashlib.md5(body.encode('utf-8')).digest()
+    return base64.urlsafe_b64encode(digest)[0:6].decode('ascii')

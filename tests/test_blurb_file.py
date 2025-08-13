@@ -2,8 +2,7 @@ import pytest
 import time_machine
 
 import blurb._blurb_file
-from blurb._blurb_file import Blurbs
-from blurb.blurb import BlurbError
+from blurb._blurb_file import Blurbs, BlurbError, sortable_datetime
 
 
 @pytest.mark.parametrize(
@@ -146,3 +145,8 @@ def test_parse_no_body(contents, expected_error):
     # Act / Assert
     with pytest.raises(BlurbError, match=expected_error):
         blurbs.parse(contents)
+
+
+@time_machine.travel("2025-01-07 16:28:41")
+def test_sortable_datetime():
+    assert sortable_datetime() == "2025-01-07-16-28-41"
