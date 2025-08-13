@@ -42,15 +42,13 @@
 import base64
 import glob
 import hashlib
-import itertools
 import os
 import sys
-import textwrap
 import time
 
 from blurb._template import (
     next_filename_unsanitize_sections, sanitize_section,
-    sanitize_section_legacy, sections, unsanitize_section,
+    sanitize_section_legacy, sections,
 )
 
 def sortable_datetime():
