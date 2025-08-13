@@ -36,7 +36,6 @@ def initialise_subcommands() -> None:
         'merge': merge,
         'populate': populate,
         'release': release,
-
         # Make 'blurb --help/--version/-V' work.
         '--help': help,
         '--version': version,
