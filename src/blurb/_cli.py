@@ -5,8 +5,6 @@ import os
 import re
 import sys
 
-import blurb.blurb
-
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -298,5 +296,6 @@ def chdir_to_repo_root() -> str:
 
         break
 
+    import blurb.blurb
     blurb.blurb.root = path
     return path
