@@ -134,6 +134,96 @@ def test_exact_names_lowercase(section_name, expected):
 
 
 @pytest.mark.parametrize(
+    ('section', 'expect'),
+    [
+        ('Sec', 'Security'),
+        ('sec', 'Security'),
+        ('security', 'Security'),
+        ('Core And', 'Core and Builtins'),
+        ('Core And Built', 'Core and Builtins'),
+        ('Core And Builtins', 'Core and Builtins'),
+        ('Lib', 'Library'),
+        ('doc', 'Documentation'),
+        ('document', 'Documentation'),
+        ('Tes', 'Tests'),
+        ('tes', 'Tests'),
+        ('Test', 'Tests'),
+        ('Tests', 'Tests'),
+        ('Buil', 'Build'),
+        ('buil', 'Build'),
+        ('build', 'Build'),
+        ('Tool', 'Tools/Demos'),
+        ('Tools', 'Tools/Demos'),
+        ('Tools/', 'Tools/Demos'),
+        ('core', 'Core and Builtins'),
+    ],
+)
+def test_partial_words(section, expect):
+    _check_section_name(section, expect)
+
+
+@pytest.mark.parametrize(
+    ('section', 'expect'),
+    [
+        ('builtin', 'Core and Builtins'),
+        ('builtins', 'Core and Builtins'),
+        ('api', 'C API'),
+        ('c-api', 'C API'),
+        ('c/api', 'C API'),
+        ('c api', 'C API'),
+        ('dem', 'Tools/Demos'),
+        ('demo', 'Tools/Demos'),
+        ('demos', 'Tools/Demos'),
+    ],
+)
+def test_partial_special_names(section, expect):
+    _check_section_name(section, expect)
+
+
+@pytest.mark.parametrize(
+    ('section', 'expect'),
+    [
+        ('Core-and-Builtins', 'Core and Builtins'),
+        ('Core_and_Builtins', 'Core and Builtins'),
+        ('Core_and-Builtins', 'Core and Builtins'),
+        ('Core and', 'Core and Builtins'),
+        ('Core_and', 'Core and Builtins'),
+        ('core_and', 'Core and Builtins'),
+        ('core-and', 'Core and Builtins'),
+        ('Core   and   Builtins', 'Core and Builtins'),
+        ('cOre _ and - bUILtins', 'Core and Builtins'),
+        ('Tools/demo', 'Tools/Demos'),
+        ('Tools-demo', 'Tools/Demos'),
+        ('Tools demo', 'Tools/Demos'),
+    ],
+)
+def test_partial_separators(section, expect):
+    # normalize the separtors '_', '-', ' ' and '/'
+    _check_section_name(section, expect)
+
+
+@pytest.mark.parametrize(
+    ('prefix', 'expect'),
+    [
+        ('corean', 'Core and Builtins'),
+        ('coreand', 'Core and Builtins'),
+        ('coreandbuilt', 'Core and Builtins'),
+        ('coreand Builtins', 'Core and Builtins'),
+        ('coreand Builtins', 'Core and Builtins'),
+        ('coreAnd Builtins', 'Core and Builtins'),
+        ('CoreAnd Builtins', 'Core and Builtins'),
+        ('Coreand', 'Core and Builtins'),
+        ('Coreand Builtins', 'Core and Builtins'),
+        ('Coreand builtin', 'Core and Builtins'),
+        ('Coreand buil', 'Core and Builtins'),
+    ],
+)
+def test_partial_prefix_words(prefix, expect):
+    # try to find a match using prefixes (without separators and lowercase)
+    _check_section_name(prefix, expect)
+
+
+@pytest.mark.parametrize(
     'section',
     (
         '',
@@ -178,6 +268,29 @@ def test_empty_section_name(section):
 )
 def test_invalid_section_name(section):
     error_message = rf"(?m)Invalid section name: '{re.escape(section)}'\n\n.+"
+    with pytest.raises(SystemExit, match=error_message):
+        _extract_section_name(section)
+
+    with pytest.raises(SystemExit, match=error_message):
+        _blurb_template_text(issue=None, section=section)
+
+
+@pytest.mark.parametrize(
+    ('section', 'matches'),
+    [
+        # 'matches' must be a sorted sequence of matching section names
+        ('c', ['C API', 'Core and Builtins']),
+        ('C', ['C API', 'Core and Builtins']),
+        ('t', ['Tests', 'Tools/Demos']),
+        ('T', ['Tests', 'Tools/Demos']),
+    ],
+)
+def test_ambiguous_section_name(section, matches):
+    matching_list = ', '.join(map(repr, matches))
+    error_message = re.escape(
+        f'More than one match for: {section!r}\nMatches: {matching_list}'
+    )
+    error_message = re.compile(rf'{error_message}', re.MULTILINE)
     with pytest.raises(SystemExit, match=error_message):
         _extract_section_name(section)
 
