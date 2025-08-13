@@ -298,5 +298,6 @@ def chdir_to_repo_root() -> str:
 
         break
 
-    blurb.root = path
+    import blurb.blurb
+    blurb.blurb.root = path
     return path

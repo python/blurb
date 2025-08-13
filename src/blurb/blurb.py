@@ -39,7 +39,6 @@
 #
 # automatic git adds and removes
 
-import atexit
 import base64
 import builtins
 import glob
@@ -49,18 +48,16 @@ import itertools
 import os
 from pathlib import Path
 import re
-import shlex
 import shutil
 import subprocess
 import sys
-import tempfile
 import textwrap
 import time
 
 from blurb._cli import main, subcommand
 from blurb._template import (
     next_filename_unsanitize_sections, sanitize_section,
-    sanitize_section_legacy, sections, template, unsanitize_section,
+    sanitize_section_legacy, sections, unsanitize_section,
 )
 
 root = None  # Set by chdir_to_repo_root()
@@ -155,10 +152,6 @@ def textwrap_body(body, *, subsequent_indent=''):
     if not text.endswith("\n"):
         text += "\n"
     return text
-
-
-def current_date():
-    return time.strftime("%Y-%m-%d", time.localtime())
 
 def sortable_datetime():
     return time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -564,65 +557,6 @@ def _find_blurb_dir():
         if os.path.isdir(path):
             return path
     return None
-
-
-@subcommand
-def release(version):
-    """
-Move all new blurbs to a single blurb file for the release.
-
-This is used by the release manager when cutting a new release.
-    """
-    if version == ".":
-        # harvest version number from dirname of repo
-        # I remind you, we're in the Misc subdir right now
-        version = os.path.basename(root)
-
-    existing_filenames = glob_blurbs(version)
-    if existing_filenames:
-        error("Sorry, can't handle appending 'next' files to an existing version (yet).")
-
-    output = f"Misc/NEWS.d/{version}.rst"
-    filenames = glob_blurbs("next")
-    blurbs = Blurbs()
-    date = current_date()
-
-    if not filenames:
-        print(f"No blurbs found.  Setting {version} as having no changes.")
-        body = f"There were no new changes in version {version}.\n"
-        metadata = {"no changes": "True", "gh-issue": "0", "section": "Library", "date": date, "nonce": nonceify(body)}
-        blurbs.append((metadata, body))
-    else:
-        count = len(filenames)
-        print(f'Merging {count} blurbs to "{output}".')
-
-        for filename in filenames:
-            if not filename.endswith(".rst"):
-                continue
-            blurbs.load_next(filename)
-
-        metadata = blurbs[0][0]
-
-    metadata['release date'] = date
-    print("Saving.")
-
-    blurbs.save(output)
-    git_add_files.append(output)
-    flush_git_add_files()
-
-    how_many = len(filenames)
-    print(f"Removing {how_many} 'next' files from git.")
-    git_rm_files.extend(filenames)
-    flush_git_rm_files()
-
-    # sanity check: ensuring that saving/reloading the merged blurb file works.
-    blurbs2 = Blurbs()
-    blurbs2.load(output)
-    assert blurbs2 == blurbs, f"Reloading {output} isn't reproducible?!"
-
-    print()
-    print("Ready for commit.")
-
 
 
 @subcommand
