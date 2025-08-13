@@ -3,7 +3,8 @@ import os
 
 import pytest
 
-from blurb.blurb import Blurbs, pushd
+from blurb._versions import chdir
+from blurb.blurb import Blurbs
 
 
 class TestParserPasses:
@@ -19,7 +20,7 @@ class TestParserPasses:
             assert str(b) == expected
 
     def test_files(self):
-        with pushd(self.directory):
+        with chdir(self.directory):
             for filename in glob.glob("*"):
                 if filename.endswith(".res"):
                     assert os.path.exists(filename[:-4]), filename
