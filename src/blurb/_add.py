@@ -9,8 +9,9 @@ import sys
 import tempfile
 
 from blurb._cli import subcommand,error,prompt
+from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sections, template
-from blurb.blurb import Blurbs, BlurbError, flush_git_add_files, git_add_files
+from blurb.blurb import Blurbs, BlurbError
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:

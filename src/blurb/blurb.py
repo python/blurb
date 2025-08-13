@@ -49,12 +49,12 @@ import os
 from pathlib import Path
 import re
 import shutil
-import subprocess
 import sys
 import textwrap
 import time
 
 from blurb._cli import main, subcommand
+from blurb._git import git_add_files, flush_git_add_files
 from blurb._template import (
     next_filename_unsanitize_sections, sanitize_section,
     sanitize_section_legacy, sections, unsanitize_section,
@@ -671,30 +671,6 @@ Python News
         Path(output).write_text(new_contents, encoding="UTF-8")
     else:
         builtins.print(output, "is already up to date")
-
-
-git_add_files = []
-def flush_git_add_files():
-    if git_add_files:
-        subprocess.run(["git", "add", "--force", *git_add_files]).check_returncode()
-        git_add_files.clear()
-
-git_rm_files = []
-def flush_git_rm_files():
-    if git_rm_files:
-        try:
-            subprocess.run(["git", "rm", "--quiet", "--force", *git_rm_files]).check_returncode()
-        except subprocess.CalledProcessError:
-            pass
-
-        # clean up
-        for path in git_rm_files:
-            try:
-                os.unlink(path)
-            except FileNotFoundError:
-                pass
-
-        git_rm_files.clear()
 
 
 @subcommand
