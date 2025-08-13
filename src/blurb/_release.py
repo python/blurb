@@ -5,8 +5,9 @@ import time
 
 import blurb.blurb
 from blurb._cli import error, subcommand
-from blurb.blurb import (Blurbs, flush_git_add_files, flush_git_rm_files,
-                         git_rm_files, git_add_files, glob_blurbs, nonceify)
+from blurb._git import (flush_git_add_files, flush_git_rm_files,
+                        git_rm_files, git_add_files)
+from blurb.blurb import Blurbs, glob_blurbs, nonceify
 
 
 @subcommand
