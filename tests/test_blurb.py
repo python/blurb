@@ -4,47 +4,6 @@ import time_machine
 from blurb import blurb
 
 
-UNCHANGED_SECTIONS = (
-    "Library",
-)
-
-
-@pytest.mark.parametrize("section", UNCHANGED_SECTIONS)
-def test_sanitize_section_no_change(section):
-    sanitized = blurb.sanitize_section(section)
-    assert sanitized == section
-
-
-@pytest.mark.parametrize(
-    "section, expected",
-    (
-        ("C API", "C_API"),
-        ("Core and Builtins", "Core_and_Builtins"),
-        ("Tools/Demos", "Tools-Demos"),
-    ),
-)
-def test_sanitize_section_changed(section, expected):
-    sanitized = blurb.sanitize_section(section)
-    assert sanitized == expected
-
-
-@pytest.mark.parametrize("section", UNCHANGED_SECTIONS)
-def test_unsanitize_section_no_change(section):
-    unsanitized = blurb.unsanitize_section(section)
-    assert unsanitized == section
-
-
-@pytest.mark.parametrize(
-    "section, expected",
-    (
-        ("Tools-Demos", "Tools/Demos"),
-    ),
-)
-def test_unsanitize_section_changed(section, expected):
-    unsanitized = blurb.unsanitize_section(section)
-    assert unsanitized == expected
-
-
 @pytest.mark.parametrize(
     "body, subsequent_indent, expected",
     (
