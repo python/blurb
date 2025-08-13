@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 
 The format of a blurb file:
