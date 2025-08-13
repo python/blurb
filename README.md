@@ -108,11 +108,25 @@ Here's how you interact with the file:
 
 * Add the GitHub issue number for this commit to the
   end of the `.. gh-issue:` line.
+  The issue can also be specified via the ``-i`` / ``--issue`` option:
+
+  ```shell
+  $ blurb add -i 109198
+  # or equivalently
+  $ blurb add -i https://github.com/python/cpython/issues/109198
+  ```
 
 * Uncomment the line with the relevant `Misc/NEWS` section for this entry.
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
   the `#` at the front of the line.
+  The section can also be specified via the ``-s`` / ``--section`` option:
+
+  ```shell
+  $ blurb add -s Library
+  # or
+  $ blurb add -s library
+  ```
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using

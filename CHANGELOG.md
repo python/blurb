@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.0
+
+- Add the `-i` / `--issue` option to the 'blurb add' command.
+  This lets you pre-fill the `gh-issue` field in the template.
+- Add the `-s` / `--section` option to the 'blurb add' command.
+  This lets you pre-fill the `section` field in the template.
+
 ## 2.0.0
 
 * Move 'blurb test' subcommand into test suite by @hugovk in https://github.com/python/blurb/pull/37

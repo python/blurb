@@ -1,0 +1,15 @@
+target-version = "py39"
+
+[format]
+preview = true
+quote-style = "single"
+docstring-code-format = true
+
+[lint]
+preview = true
+select = [
+    "I",     # isort
+]
+ignore = [
+    "E501",  # Ignore line length errors (we use auto-formatting)
+]
