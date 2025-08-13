@@ -40,6 +40,9 @@ urls.Changelog = "https://github.com/python/blurb/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/python/blurb"
 urls.Source = "https://github.com/python/blurb"
 scripts.blurb = "blurb._cli:main"
+dependencies = [
+    "pytest>=8.4.1",
+]
 
 [tool.hatch]
 version.source = "vcs"
