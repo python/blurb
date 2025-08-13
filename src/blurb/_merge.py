@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from blurb._blurb_file import Blurbs
-from blurb._cli import require_ok, subcommand
+from blurb._cli import require_ok
 from blurb._utils.globs import glob_blurbs
 from blurb._utils.text import textwrap_body
 from blurb._versions import glob_versions, printable_version
@@ -11,7 +11,6 @@ from blurb._versions import glob_versions, printable_version
 original_dir: str = os.getcwd()
 
 
-@subcommand
 def merge(output: str | None = None, *, forced: bool = False) -> None:
     """Merge all blurbs together into a single Misc/NEWS file.
 

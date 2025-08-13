@@ -19,6 +19,31 @@ subcommands: dict[str, CommandFunc] = {}
 readme_re = re.compile(r'This is \w+ version \d+\.\d+').match
 
 
+def initialise_subcommands() -> None:
+    global subcommands
+
+    from blurb._add import add
+    from blurb._export import export
+    from blurb._merge import merge
+    from blurb._populate import populate
+    from blurb._release import release
+
+    subcommands = {
+        'version': version,
+        'help': help,
+        'add': add,
+        'export': export,
+        'merge': merge,
+        'populate': populate,
+        'release': release,
+
+        # Make 'blurb --help/--version/-V' work.
+        '--help': help,
+        '--version': version,
+        '-V': version,
+    }
+
+
 def error(msg: str, /) -> NoReturn:
     raise SystemExit(f'Error: {msg}')
 
@@ -35,12 +60,6 @@ def require_ok(prompt: str, /) -> str:
             return s
 
 
-def subcommand(fn: CommandFunc):
-    global subcommands
-    subcommands[fn.__name__] = fn
-    return fn
-
-
 def get_subcommand(subcommand: str, /) -> CommandFunc:
     fn = subcommands.get(subcommand)
     if not fn:
@@ -48,13 +67,11 @@ def get_subcommand(subcommand: str, /) -> CommandFunc:
     return fn
 
 
-@subcommand
 def version() -> None:
     """Print blurb version."""
     print('blurb version', blurb.__version__)
 
 
-@subcommand
 def help(subcommand: str | None = None) -> None:
     """Print help for subcommands.
 
@@ -100,12 +117,6 @@ def help(subcommand: str | None = None) -> None:
     print()
     print(doc)
     raise SystemExit(0)
-
-
-# Make 'blurb --help/--version/-V' work.
-subcommands['--help'] = help
-subcommands['--version'] = version
-subcommands['-V'] = version
 
 
 def _blurb_help() -> None:
@@ -157,6 +168,7 @@ def main() -> None:
     subcommand = args[0]
     args = args[1:]
 
+    initialise_subcommands()
     fn = get_subcommand(subcommand)
 
     # hack
