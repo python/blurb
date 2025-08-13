@@ -1,15 +1,10 @@
-import glob
 import os
 import sys
 from pathlib import Path
 
 from blurb._cli import require_ok, subcommand
-from blurb._template import (
-    next_filename_unsanitize_sections, sanitize_section,
-    sanitize_section_legacy, sections,
-)
 from blurb._versions import glob_versions, printable_version
-from blurb.blurb import Blurbs, textwrap_body
+from blurb.blurb import Blurbs, glob_blurbs, textwrap_body
 
 original_dir: str = os.getcwd()
 
@@ -122,25 +117,3 @@ Python News
         Path(output).write_text(new_contents, encoding='utf-8')
     else:
         print(output, 'is already up to date')
-
-
-def glob_blurbs(version: str) -> list[str]:
-    filenames = []
-    base = os.path.join('Misc', 'NEWS.d', version)
-    if version != 'next':
-        wildcard = f'{base}.rst'
-        filenames.extend(glob.glob(wildcard))
-    else:
-        sanitized_sections = (
-                {sanitize_section(section) for section in sections} |
-                {sanitize_section_legacy(section) for section in sections}
-        )
-        for section in sanitized_sections:
-            wildcard = os.path.join(base, section, '*.rst')
-            entries = glob.glob(wildcard)
-            deletables = [x for x in entries if x.endswith('/README.rst')]
-            for filename in deletables:
-                entries.remove(filename)
-            filenames.extend(entries)
-    filenames.sort(reverse=True, key=next_filename_unsanitize_sections)
-    return filenames

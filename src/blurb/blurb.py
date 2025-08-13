@@ -52,7 +52,10 @@ import time
 
 from blurb._cli import main, subcommand
 from blurb._git import git_add_files, flush_git_add_files
-from blurb._template import sanitize_section, sections, unsanitize_section
+from blurb._template import (
+    next_filename_unsanitize_sections, sanitize_section,
+    sanitize_section_legacy, sections, unsanitize_section,
+)
 
 root = None  # Set by chdir_to_repo_root()
 
@@ -153,6 +156,28 @@ def sortable_datetime():
 def nonceify(body):
     digest = hashlib.md5(body.encode("utf-8")).digest()
     return base64.urlsafe_b64encode(digest)[0:6].decode('ascii')
+
+
+def glob_blurbs(version):
+    filenames = []
+    base = os.path.join("Misc", "NEWS.d", version)
+    if version != "next":
+        wildcard = base + ".rst"
+        filenames.extend(glob.glob(wildcard))
+    else:
+        sanitized_sections = (
+                {sanitize_section(section) for section in sections} |
+                {sanitize_section_legacy(section) for section in sections}
+        )
+        for section in sanitized_sections:
+            wildcard = os.path.join(base, section, "*.rst")
+            entries = glob.glob(wildcard)
+            deletables = [x for x in entries if x.endswith("/README.rst")]
+            for filename in deletables:
+                entries.remove(filename)
+            filenames.extend(entries)
+    filenames.sort(reverse=True, key=next_filename_unsanitize_sections)
+    return filenames
 
 
 class BlurbError(RuntimeError):
