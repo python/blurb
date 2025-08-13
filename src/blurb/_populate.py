@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import os
 
-from blurb._cli import subcommand
 from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sanitize_section, sections
 
 
-@subcommand
 def populate() -> None:
     """Creates and populates the Misc/NEWS.d directory tree."""
     os.chdir('Misc')

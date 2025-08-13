@@ -9,7 +9,7 @@ import sys
 import tempfile
 
 from blurb._blurb_file import BlurbError, Blurbs
-from blurb._cli import error, prompt, subcommand
+from blurb._cli import error, prompt
 from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sections, template
 
@@ -23,7 +23,6 @@ else:
     FALLBACK_EDITORS = ('/etc/alternatives/editor', 'nano')
 
 
-@subcommand
 def add(*, issue: str | None = None, section: str | None = None):
     """Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
 

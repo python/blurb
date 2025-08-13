@@ -5,7 +5,7 @@ import time
 
 import blurb._blurb_file
 from blurb._blurb_file import Blurbs
-from blurb._cli import error, subcommand
+from blurb._cli import error
 from blurb._git import (
     flush_git_add_files,
     flush_git_rm_files,
@@ -16,7 +16,6 @@ from blurb._utils.globs import glob_blurbs
 from blurb._utils.text import generate_nonce
 
 
-@subcommand
 def release(version: str) -> None:
     """Move all new blurbs to a single blurb file for the release.
 
