@@ -5,6 +5,8 @@ import os
 import re
 import sys
 
+import blurb
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
