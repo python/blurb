@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from blurb._git import flush_git_add_files, git_add_files
