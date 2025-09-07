@@ -93,7 +93,11 @@ def help(subcommand: str | None = None) -> None:
     nesting = 0
     for name, p in inspect.signature(fn).parameters.items():
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
-            short_option = name[0]
+            # Special case for rst_on_stdin which uses -D
+            if name == 'rst_on_stdin':
+                short_option = 'D'
+            else:
+                short_option = name[0]
             if isinstance(p.default, bool):
                 options.append(f' [-{short_option}|--{name}]')
             else:
@@ -195,7 +199,11 @@ def main() -> None:
                     )
 
                 kwargs[name] = p.default
-                short_options[name[0]] = name
+                # Special case for rst_on_stdin which uses -D
+                if name == 'rst_on_stdin':
+                    short_options['D'] = name
+                else:
+                    short_options[name[0]] = name
                 long_options[name] = name
 
         filtered_args = []

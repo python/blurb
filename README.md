@@ -120,17 +120,39 @@ Here's how you interact with the file:
   For example, if this should go in the `Library` section, uncomment
   the line reading `#.. section: Library`.  To uncomment, just delete
   the `#` at the front of the line.
-  The section can also be specified via the ``-s`` / ``--section`` option:
+  The section can also be specified via the ``-s`` / ``--section`` option,
+  which supports case-insensitive matching and common aliases:
 
   ```shell
   $ blurb add -s Library
-  # or
+  # or using case-insensitive matching
   $ blurb add -s library
+  # or using an alias
+  $ blurb add -s lib
+  # More aliases: api→C API, core→Core and Builtins, docs→Documentation
   ```
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using
   simple reST markup.
+
+For automated tools and CI systems, you can provide the blurb content
+via stdin using the `-D` / `--rst-on-stdin` option. This requires both
+`--issue` and `--section` to be specified:
+
+```shell
+# Provide content via stdin
+$ echo "Fixed a bug in the parser" | blurb add -i 12345 -s core -D
+
+# Use with heredoc for multiline content
+$ blurb add -i 12345 -s library -D << 'EOF'
+Fixed an issue where :func:`example.function` would fail
+when given invalid input. Patch by Jane Doe.
+EOF
+
+# Use in scripts and CI pipelines
+$ cat my-news-entry.txt | blurb add -i "$ISSUE" -s "$SECTION" -D
+```
 
 When `blurb add` gets a valid entry, it writes it to a file
 with the following format:
