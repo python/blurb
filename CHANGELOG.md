@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.0 (unreleased)
+
+- Add the `-D` / `--rst-on-stdin` option to the 'blurb add' command.
+  This lets you provide the blurb content via stdin for automation.
+- Enhanced section matching with smart matching and aliases.
+  You can now use shortcuts like 'api' for 'C API', 'core' for 'Core and Builtins', etc.
+- Section matching now supports flexible patterns with word separators.
+
 ## 2.1.0
 
 - Add the `-i` / `--issue` option to the 'blurb add' command.
