@@ -33,7 +33,7 @@ terminates the METADATA section and is the first line of the BODY.
 Format of the BODY section:
 
   * The BODY section should be a single paragraph of English text
-    in ReST format.  It should not use the following ReST markup
+    in reST format.  It should not use the following reST markup
     features:
       * section headers
       * comments
@@ -49,7 +49,7 @@ Format of the BODY section:
     (This formatting will be inserted when rendering the final output.)
   * Lines longer than 76 characters will be wordwrapped.
       * In the final output, the first line will have
-        "- gh-issue-<gh-issue-number>: " inserted at the front,
+        "- :gh:`<gh-issue-number>`: " inserted at the front,
         and subsequent lines will have two spaces inserted
         at the front.
 
