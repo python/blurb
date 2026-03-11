@@ -156,10 +156,6 @@ def test_empty_section_name(section):
 @pytest.mark.parametrize(
     'section',
     [
-        # Wrong capitalisation
-        'C api',
-        'c API',
-        'LibrarY',
         # Invalid
         '_',
         '-',
@@ -183,3 +179,28 @@ def test_invalid_section_name(section):
 
     with pytest.raises(SystemExit, match=error_message):
         _blurb_template_text(issue=None, section=section)
+
+
+@pytest.mark.parametrize(
+    'section, expected',
+    [
+        # Case variations now work
+        ('C api', 'C API'),
+        ('c API', 'C API'),
+        ('c api', 'C API'),
+        ('LibrarY', 'Library'),
+        ('LIBRARY', 'Library'),
+        # Substring matching
+        ('lib', 'Library'),
+        ('api', 'C API'),
+        ('core', 'Core and Builtins'),
+        ('builtin', 'Core and Builtins'),
+        ('doc', 'Documentation'),
+        ('test', 'Tests'),
+        ('tool', 'Tools/Demos'),
+        ('demo', 'Tools/Demos'),
+    ],
+)
+def test_smart_section_matching(section, expected):
+    """Test that smart section matching and aliases work correctly."""
+    assert _extract_section_name(section) == expected
