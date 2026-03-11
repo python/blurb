@@ -58,3 +58,33 @@ def test_glob_blurbs_sort_order(fs) -> None:
 
     # Assert
     assert filenames == expected
+
+
+def test_glob_blurbs_section_ordering(fs) -> None:
+    """Sections must appear in importance order, not alphabetical order.
+
+    The canonical order is: Security, Core and Builtins, Library,
+    Documentation, Tests, Build, Windows, macOS, IDLE, Tools/Demos, C API.
+    """
+    # Arrange: one entry per section
+    fake_news_entries = [
+        'Misc/NEWS.d/next/Security/2024-01-01-00-00-00.gh-issue-00000.aAAAAA.rst',
+        'Misc/NEWS.d/next/Core_and_Builtins/2024-01-01-00-00-00.gh-issue-00001.bBBBBB.rst',
+        'Misc/NEWS.d/next/Library/2024-01-01-00-00-00.gh-issue-00002.cCCCCC.rst',
+        'Misc/NEWS.d/next/Documentation/2024-01-01-00-00-00.gh-issue-00003.dDDDDD.rst',
+        'Misc/NEWS.d/next/Tests/2024-01-01-00-00-00.gh-issue-00004.eEEEEE.rst',
+        'Misc/NEWS.d/next/Build/2024-01-01-00-00-00.gh-issue-00005.fFFFFF.rst',
+        'Misc/NEWS.d/next/Windows/2024-01-01-00-00-00.gh-issue-00006.gGGGGG.rst',
+        'Misc/NEWS.d/next/macOS/2024-01-01-00-00-00.gh-issue-00007.hHHHHH.rst',
+        'Misc/NEWS.d/next/IDLE/2024-01-01-00-00-00.gh-issue-00008.iIIIII.rst',
+        'Misc/NEWS.d/next/Tools-Demos/2024-01-01-00-00-00.gh-issue-00009.jJJJJJ.rst',
+        'Misc/NEWS.d/next/C_API/2024-01-01-00-00-00.gh-issue-00010.kKKKKK.rst',
+    ]
+    for path in fake_news_entries:
+        fs.create_file(path)
+
+    # Act
+    filenames = glob_blurbs('next')
+
+    # Assert: must be in importance order, not alphabetical
+    assert filenames == fake_news_entries
