@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0
+
+* Add support for Python 3.15 by @hugovk in https://github.com/python/blurb/pull/74
+
 ## 2.1.0
 
 - Add the `-i` / `--issue` option to the 'blurb add' command.
