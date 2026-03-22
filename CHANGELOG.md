@@ -3,6 +3,7 @@
 ## 2.2.0
 
 * Add support for Python 3.15 by @hugovk in https://github.com/python/blurb/pull/74
+* Keep sections in importance order by @hugovk in https://github.com/python/blurb/pull/75
 
 ## 2.1.0
 

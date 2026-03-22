@@ -14,18 +14,29 @@ from blurb._template import (
 def glob_blurbs(version: str) -> list[str]:
     filenames = []
     base = os.path.join('Misc', 'NEWS.d', version)
+
     if version != 'next':
         wildcard = f'{base}.rst'
         filenames.extend(glob.glob(wildcard))
-    else:
-        sanitized_sections = set(map(sanitize_section, sections))
-        sanitized_sections |= set(map(sanitize_section_legacy, sections))
-        for section in sanitized_sections:
-            wildcard = os.path.join(base, section, '*.rst')
-            entries = glob.glob(wildcard)
-            deletables = [x for x in entries if x.endswith('/README.rst')]
-            for filename in deletables:
-                entries.remove(filename)
-            filenames.extend(entries)
-    filenames.sort(reverse=True, key=next_filename_unsanitize_sections)
+        return filenames
+
+    for section in sections:
+        entries = []
+        seen_dirs = set()
+        for dir_name in (
+            sanitize_section(section),
+            sanitize_section_legacy(section),
+        ):
+            if dir_name in seen_dirs:
+                continue
+
+            seen_dirs.add(dir_name)
+            wildcard = os.path.join(base, dir_name, '*.rst')
+            for entry in glob.glob(wildcard):
+                if not entry.endswith('/README.rst'):
+                    entries.append(entry)
+
+        entries.sort(reverse=True, key=next_filename_unsanitize_sections)
+        filenames.extend(entries)
+
     return filenames
