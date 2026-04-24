@@ -43,12 +43,8 @@ scripts.blurb = "blurb._cli:main"
 
 [tool.hatch]
 version.source = "vcs"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "src/blurb/_version.py"
-
-[tool.hatch.version.raw-options]
-local_scheme = "no-local-version"
+version.raw-options.local_scheme = "no-local-version"
+build.hooks.vcs.version-file = "src/blurb/_version.py"
 
 [tool.pyproject-fmt]
 max_supported_python = "3.15"
