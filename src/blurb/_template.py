@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 #
 # This template is the canonical list of acceptable section names!
 # It's parsed internally into the "sections" set.
@@ -82,3 +84,39 @@ def next_filename_unsanitize_sections(filename: str, /) -> str:
             value = f'{separator}{value}{separator}'
             filename = filename.replace(key, value)
     return filename
+
+
+# Mapping from section names to additional allowed patterns
+# which ignore whitespaces for composed section names.
+#
+# For instance, 'Core and Builtins' is represented by the
+# pattern 'Core<SEP>?and<SEP>?Builtins' where <SEP> are the
+# allowed user separators '_', '-', ' ' and '/'.
+_section_special_patterns = {__: set() for __ in sections}
+
+# Mapping from section names to sanitized names (no separators, lowercase).
+#
+# For instance, 'Core and Builtins' is mapped to 'coreandbuiltins', and
+# passing a prefix of that would match to 'Core and Builtins'. Note that
+# this is only used as a last resort.
+_section_names_lower_nosep = {}
+
+for _section in sections:
+    # ' ' and '/' are the separators used by known sections
+    _sanitized = re.sub(r'[ /]', ' ', _section)
+    _section_words = re.split(r'\s+', _sanitized)
+    _section_names_lower_nosep[_section] = ''.join(_section_words).lower()
+    del _sanitized
+    # '_', '-', ' ' and '/' are the allowed (user) separators
+    _section_pattern = r'[_\- /]?'.join(map(re.escape, _section_words))
+    # add '$' to avoid matching after the pattern
+    _section_pattern = f'{_section_pattern}$'
+    del _section_words
+    _section_pattern = re.compile(_section_pattern, re.I)
+    _section_special_patterns[_section].add(_section_pattern)
+    del _section_pattern, _section
+
+# the following statements will raise KeyError if the names are invalid
+_section_special_patterns['C API'].add(re.compile(r'^((?<=c)[_\- /])?api$', re.I))
+_section_special_patterns['Core and Builtins'].add(re.compile('^builtins?$', re.I))
+_section_special_patterns['Tools/Demos'].add(re.compile('^dem(?:o|os)?$', re.I))
