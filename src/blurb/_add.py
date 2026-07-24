@@ -24,15 +24,15 @@ else:
 
 
 def add(*, issue: str | None = None, section: str | None = None):
-    """Add a blurb (a Misc/NEWS.d/next entry) to the current CPython repo.
+    """Add a blurb (a `Misc/NEWS.d/next` entry) to the current CPython repo.
 
-    Use -i/--issue to specify a GitHub issue number or link, e.g.:
+    Use `-i`/`--issue` to specify a GitHub issue number or link, e.g.:
 
         blurb add -i 12345
         # or
         blurb add -i https://github.com/python/cpython/issues/12345
 
-    Use -s/--section to specify the section name (case-insensitive), e.g.:
+    Use `-s`/`--section` to specify the section name (case-insensitive), e.g.:
 
         blurb add -s Library
         # or

@@ -14,13 +14,13 @@ original_dir: str = os.getcwd()
 
 
 def merge(output: str | None = None, *, forced: bool = False) -> None:
-    """Merge all blurbs together into a single Misc/NEWS file.
+    """Merge all blurbs together into a single `Misc/NEWS` file.
 
     Optional output argument specifies where to write to.
-    Default is <cpython-root>/Misc/NEWS.
+    Default is `<cpython-root>/Misc/NEWS`.
 
     If overwriting, blurb merge will prompt you to make sure it's okay.
-    To force it to overwrite, use -f.
+    To force it to overwrite, use `-f`.
     """
     if output:
         output = os.path.join(original_dir, output)

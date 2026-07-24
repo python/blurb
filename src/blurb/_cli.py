@@ -39,8 +39,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog='blurb',
-        description='Management tool for CPython Misc/NEWS and Misc/NEWS.d entries.',
-        epilog="If blurb is run without any arguments, this is equivalent to 'blurb add'.",
+        description='Management tool for CPython `Misc/NEWS` and `Misc/NEWS.d` entries.',
+        epilog='If blurb is run without any arguments, this is equivalent to `blurb add`.',
     )
     parser.add_argument(
         '-V',
