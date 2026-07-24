@@ -62,14 +62,6 @@ managers.
 
 
 
-### blurb help
-
-**blurb** is self-documenting through the `blurb help` subcommand.
-Run without any further arguments, it prints a list of all subcommands,
-with a one-line summary of the functionality of each.  Run with a
-third argument, it prints help on that subcommand (e.g. `blurb help release`).
-
-
 ### blurb add
 
 `blurb add` adds a new `Misc/NEWS` entry for you.
