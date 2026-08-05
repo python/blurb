@@ -7,7 +7,7 @@ from blurb._template import sanitize_section, sections
 
 
 def populate() -> None:
-    """Creates and populates the Misc/NEWS.d directory tree."""
+    """Creates and populates the `Misc/NEWS.d` directory tree."""
     os.chdir('Misc')
     os.makedirs('NEWS.d/next', exist_ok=True)
 
