@@ -17,10 +17,10 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-if sys.platform == 'win32':
-    FALLBACK_EDITORS = ('notepad.exe',)
+if sys.platform == "win32":
+    FALLBACK_EDITORS = ("notepad.exe",)
 else:
-    FALLBACK_EDITORS = ('/etc/alternatives/editor', 'nano')
+    FALLBACK_EDITORS = ("/etc/alternatives/editor", "nano")
 
 
 def add(*, issue: str | None = None, section: str | None = None):
@@ -44,12 +44,12 @@ def add(*, issue: str | None = None, section: str | None = None):
 {sections}
     """  # fmt: skip
 
-    handle, tmp_path = tempfile.mkstemp('.rst')
+    handle, tmp_path = tempfile.mkstemp(".rst")
     os.close(handle)
     atexit.register(lambda: os.unlink(tmp_path))
 
     text = _blurb_template_text(issue=issue, section=section)
-    with open(tmp_path, 'w', encoding='utf-8') as file:
+    with open(tmp_path, "w", encoding="utf-8") as file:
         file.write(text)
 
     args = _editor_args()
@@ -59,7 +59,7 @@ def add(*, issue: str | None = None, section: str | None = None):
         blurb = _add_blurb_from_template(args, tmp_path)
         if blurb is None:
             try:
-                prompt('Hit return to retry (or Ctrl-C to abort)')
+                prompt("Hit return to retry (or Ctrl-C to abort)")
             except KeyboardInterrupt:
                 print()
                 return
@@ -70,10 +70,10 @@ def add(*, issue: str | None = None, section: str | None = None):
     path = blurb.save_next()
     git_add_files.append(path)
     flush_git_add_files()
-    print('Ready for commit.')
+    print("Ready for commit.")
 
 
-add.__doc__ = add.__doc__.format(sections='\n'.join(f'* {s}' for s in sections))
+add.__doc__ = add.__doc__.format(sections="\n".join(f"* {s}" for s in sections))
 
 
 def _editor_args() -> list[str]:
@@ -89,12 +89,12 @@ def _editor_args() -> list[str]:
     else:
         args = list(shlex.split(editor))
         if not shutil.which(args[0]):
-            raise SystemExit(f'Invalid GIT_EDITOR / EDITOR value: {editor}')
+            raise SystemExit(f"Invalid GIT_EDITOR / EDITOR value: {editor}")
     return args
 
 
 def _find_editor() -> str:
-    for var in 'GIT_EDITOR', 'EDITOR':
+    for var in "GIT_EDITOR", "EDITOR":
         editor = os.environ.get(var)
         if editor is not None:
             return editor
@@ -105,7 +105,7 @@ def _find_editor() -> str:
             found_path = shutil.which(fallback)
         if found_path and os.path.exists(found_path):
             return found_path
-    error('Could not find an editor! Set the EDITOR environment variable.')
+    error("Could not find an editor! Set the EDITOR environment variable.")
 
 
 def _blurb_template_text(*, issue: str | None, section: str | None) -> str:
@@ -117,21 +117,21 @@ def _blurb_template_text(*, issue: str | None, section: str | None) -> str:
     # Ensure that there is a trailing space after '.. gh-issue:' to make
     # filling in the template easier, unless an issue number was given
     # through the --issue command-line flag.
-    issue_line = '.. gh-issue:'
-    without_space = f'\n{issue_line}\n'
+    issue_line = ".. gh-issue:"
+    without_space = f"\n{issue_line}\n"
     if without_space not in text:
         raise SystemExit("Can't find gh-issue line in the template!")
     if issue_number is None:
-        with_space = f'\n{issue_line} \n'
+        with_space = f"\n{issue_line} \n"
         text = text.replace(without_space, with_space)
     else:
-        with_issue_number = f'\n{issue_line} {issue_number}\n'
+        with_issue_number = f"\n{issue_line} {issue_number}\n"
         text = text.replace(without_space, with_issue_number)
 
     # Uncomment the section if needed.
     if section_name is not None:
-        pattern = f'.. section: {section_name}'
-        text = text.replace(f'#{pattern}', pattern)
+        pattern = f".. section: {section_name}"
+        text = text.replace(f"#{pattern}", pattern)
 
     return text
 
@@ -141,10 +141,10 @@ def _extract_issue_number(issue: str | None, /) -> int | None:
         return None
     issue = issue.strip()
 
-    if issue.startswith(('GH-', 'gh-')):
+    if issue.startswith(("GH-", "gh-")):
         stripped = issue[3:]
     else:
-        stripped = issue.removeprefix('#')
+        stripped = issue.removeprefix("#")
     try:
         if stripped.isdecimal():
             return int(stripped)
@@ -152,15 +152,15 @@ def _extract_issue_number(issue: str | None, /) -> int | None:
         pass
 
     # Allow GitHub URL with or without the scheme
-    stripped = issue.removeprefix('https://')
-    stripped = stripped.removeprefix('github.com/python/cpython/issues/')
+    stripped = issue.removeprefix("https://")
+    stripped = stripped.removeprefix("github.com/python/cpython/issues/")
     try:
         if stripped.isdecimal():
             return int(stripped)
     except ValueError:
         pass
 
-    raise SystemExit(f'Invalid GitHub issue number: {issue}')
+    raise SystemExit(f"Invalid GitHub issue number: {issue}")
 
 
 def _extract_section_name(section: str | None, /) -> str | None:
@@ -169,7 +169,7 @@ def _extract_section_name(section: str | None, /) -> str | None:
 
     section = section.strip()
     if not section:
-        raise SystemExit('Empty section name!')
+        raise SystemExit("Empty section name!")
 
     matches = []
     # Try an exact or lowercase match
@@ -178,14 +178,14 @@ def _extract_section_name(section: str | None, /) -> str | None:
             matches.append(section_name)
 
     if not matches:
-        section_list = '\n'.join(f'* {s}' for s in sections)
+        section_list = "\n".join(f"* {s}" for s in sections)
         raise SystemExit(
-            f'Invalid section name: {section!r}\n\nValid names are:\n\n{section_list}'
+            f"Invalid section name: {section!r}\n\nValid names are:\n\n{section_list}"
         )
 
     if len(matches) > 1:
-        multiple_matches = ', '.join(f'* {m}' for m in sorted(matches))
-        raise SystemExit(f'More than one match for {section!r}:\n\n{multiple_matches}')
+        multiple_matches = ", ".join(f"* {m}" for m in sorted(matches))
+        raise SystemExit(f"More than one match for {section!r}:\n\n{multiple_matches}")
 
     return matches[0]
 
@@ -193,7 +193,7 @@ def _extract_section_name(section: str | None, /) -> str | None:
 def _add_blurb_from_template(args: Sequence[str], tmp_path: str) -> Blurbs | None:
     subprocess.run(args)
 
-    failure = ''
+    failure = ""
     blurb = Blurbs()
     try:
         blurb.load(tmp_path)
@@ -207,7 +207,7 @@ def _add_blurb_from_template(args: Sequence[str], tmp_path: str) -> Blurbs | Non
 
     if failure:
         print()
-        print(f'Error: {failure}')
+        print(f"Error: {failure}")
         print()
         return None
     return blurb

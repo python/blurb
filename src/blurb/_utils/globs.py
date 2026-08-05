@@ -13,10 +13,10 @@ from blurb._template import (
 
 def glob_blurbs(version: str) -> list[str]:
     filenames = []
-    base = os.path.join('Misc', 'NEWS.d', version)
+    base = os.path.join("Misc", "NEWS.d", version)
 
-    if version != 'next':
-        wildcard = f'{base}.rst'
+    if version != "next":
+        wildcard = f"{base}.rst"
         filenames.extend(glob.glob(wildcard))
         return filenames
 
@@ -31,9 +31,9 @@ def glob_blurbs(version: str) -> list[str]:
                 continue
 
             seen_dirs.add(dir_name)
-            wildcard = os.path.join(base, dir_name, '*.rst')
+            wildcard = os.path.join(base, dir_name, "*.rst")
             for entry in glob.glob(wildcard):
-                if not entry.endswith('/README.rst'):
+                if not entry.endswith("/README.rst"):
                     entries.append(entry)
 
         entries.sort(reverse=True, key=next_filename_unsanitize_sections)

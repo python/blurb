@@ -47,7 +47,6 @@ build.hooks.vcs.version-file = "src/blurb/_version.py"
 [tool.ruff]
 fix = true
 format.preview = true
-format.quote-style = "single"
 format.docstring-code-format = true
 lint.select = [
   "I", # isort

@@ -25,15 +25,15 @@ def merge(output: str | None = None, *, forced: bool = False) -> None:
     if output:
         output = os.path.join(original_dir, output)
     else:
-        output = 'Misc/NEWS'
+        output = "Misc/NEWS"
 
     versions = glob_versions()
     if not versions:
         sys.exit("You literally don't have ANY blurbs to merge together!")
 
     if os.path.exists(output) and not forced:
-        print(f'You already have a {output!r} file.')
-        require_ok('Type ok to overwrite')
+        print(f"You already have a {output!r} file.")
+        require_ok("Type ok to overwrite")
 
     write_news(output, versions=versions)
 
@@ -41,7 +41,7 @@ def merge(output: str | None = None, *, forced: bool = False) -> None:
 def write_news(output: str, *, versions: list[str]) -> None:
     buff = []
 
-    def prnt(msg: str = '', /):
+    def prnt(msg: str = "", /):
         buff.append(msg)
 
     prnt(
@@ -57,15 +57,15 @@ Python News
         filenames = glob_blurbs(version)
 
         blurbs = Blurbs()
-        if version == 'next':
+        if version == "next":
             for filename in filenames:
-                if os.path.basename(filename) == 'README.rst':
+                if os.path.basename(filename) == "README.rst":
                     continue
                 blurbs.load_next(filename)
             if not blurbs:
                 continue
             metadata = blurbs[0][0]
-            metadata['release date'] = 'XXXX-XX-XX'
+            metadata["release date"] = "XXXX-XX-XX"
         else:
             assert len(filenames) == 1
             blurbs.load(filenames[0])
@@ -73,52 +73,52 @@ Python News
         header = f"What's New in Python {printable_version(version)}?"
         prnt()
         prnt(header)
-        prnt('=' * len(header))
+        prnt("=" * len(header))
         prnt()
 
         metadata, body = blurbs[0]
-        release_date = metadata['release date']
+        release_date = metadata["release date"]
 
-        prnt(f'*Release date: {release_date}*')
+        prnt(f"*Release date: {release_date}*")
         prnt()
 
-        if 'no changes' in metadata:
+        if "no changes" in metadata:
             prnt(body)
             prnt()
             continue
 
         last_section = None
         for metadata, body in blurbs:
-            section = metadata['section']
+            section = metadata["section"]
             if last_section != section:
                 last_section = section
                 prnt(section)
-                prnt('-' * len(section))
+                prnt("-" * len(section))
                 prnt()
-            if metadata.get('gh-issue'):
-                issue_number = metadata['gh-issue']
+            if metadata.get("gh-issue"):
+                issue_number = metadata["gh-issue"]
                 if int(issue_number):
-                    body = f'gh-{issue_number}: {body}'
-            elif metadata.get('bpo'):
-                issue_number = metadata['bpo']
+                    body = f"gh-{issue_number}: {body}"
+            elif metadata.get("bpo"):
+                issue_number = metadata["bpo"]
                 if int(issue_number):
-                    body = f'bpo-{issue_number}: {body}'
+                    body = f"bpo-{issue_number}: {body}"
 
-            body = f'- {body}'
-            text = textwrap_body(body, subsequent_indent='  ')
+            body = f"- {body}"
+            text = textwrap_body(body, subsequent_indent="  ")
             prnt(text)
     prnt()
-    prnt('**(For information about older versions, consult the HISTORY file.)**')
+    prnt("**(For information about older versions, consult the HISTORY file.)**")
 
-    new_contents = '\n'.join(buff)
+    new_contents = "\n".join(buff)
 
     # Only write in `output` if the contents are different
     # This speeds up subsequent Sphinx builds
     try:
-        previous_contents = Path(output).read_text(encoding='utf-8')
+        previous_contents = Path(output).read_text(encoding="utf-8")
     except (FileNotFoundError, UnicodeError):
         previous_contents = None
     if new_contents != previous_contents:
-        Path(output).write_text(new_contents, encoding='utf-8')
+        Path(output).write_text(new_contents, encoding="utf-8")
     else:
-        print(output, 'is already up to date')
+        print(output, "is already up to date")
