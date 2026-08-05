@@ -36,22 +36,22 @@ template = """
 """.lstrip()
 
 sections: list[str] = []
-for line in template.split('\n'):
+for line in template.split("\n"):
     line = line.strip()
-    prefix, found, section = line.partition('#.. section: ')
+    prefix, found, section = line.partition("#.. section: ")
     if found and not prefix:
         sections.append(section.strip())
 
 _sanitize_section = {
-    'C API': 'C_API',
-    'Core and Builtins': 'Core_and_Builtins',
-    'Tools/Demos': 'Tools-Demos',
+    "C API": "C_API",
+    "Core and Builtins": "Core_and_Builtins",
+    "Tools/Demos": "Tools-Demos",
 }
 
 _unsanitize_section = {
-    'C_API': 'C API',
-    'Core_and_Builtins': 'Core and Builtins',
-    'Tools-Demos': 'Tools/Demos',
+    "C_API": "C API",
+    "Core_and_Builtins": "Core and Builtins",
+    "Tools-Demos": "Tools/Demos",
 }
 
 
@@ -68,7 +68,7 @@ def sanitize_section_legacy(section: str, /) -> str:
 
     This makes it viable as a directory name.
     """
-    return section.replace('/', '-')
+    return section.replace("/", "-")
 
 
 def unsanitize_section(section: str, /) -> str:
@@ -77,8 +77,8 @@ def unsanitize_section(section: str, /) -> str:
 
 def next_filename_unsanitize_sections(filename: str, /) -> str:
     for key, value in _unsanitize_section.items():
-        for separator in ('/', '\\'):
-            key = f'{separator}{key}{separator}'
-            value = f'{separator}{value}{separator}'
+        for separator in ("/", "\\"):
+            key = f"{separator}{key}{separator}"
+            value = f"{separator}{value}{separator}"
             filename = filename.replace(key, value)
     return filename

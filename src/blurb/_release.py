@@ -21,7 +21,7 @@ def release(version: str) -> None:
 
     This is used by the release manager when cutting a new release.
     """
-    if version == '.':
+    if version == ".":
         # harvest version number from dirname of repo
         # I remind you, we're in the Misc subdir right now
         version = os.path.basename(blurb._blurb_file.root)
@@ -32,20 +32,20 @@ def release(version: str) -> None:
             "Sorry, can't handle appending 'next' files to an existing version (yet)."
         )
 
-    output = f'Misc/NEWS.d/{version}.rst'
-    filenames = glob_blurbs('next')
+    output = f"Misc/NEWS.d/{version}.rst"
+    filenames = glob_blurbs("next")
     blurbs = Blurbs()
     date = current_date()
 
     if not filenames:
-        print(f'No blurbs found.  Setting {version} as having no changes.')
-        body = f'There were no new changes in version {version}.\n'
+        print(f"No blurbs found.  Setting {version} as having no changes.")
+        body = f"There were no new changes in version {version}.\n"
         metadata = {
-            'no changes': 'True',
-            'gh-issue': '0',
-            'section': 'Library',
-            'date': date,
-            'nonce': generate_nonce(body),
+            "no changes": "True",
+            "gh-issue": "0",
+            "section": "Library",
+            "date": date,
+            "nonce": generate_nonce(body),
         }
         blurbs.append((metadata, body))
     else:
@@ -53,14 +53,14 @@ def release(version: str) -> None:
         print(f'Merging {count} blurbs to "{output}".')
 
         for filename in filenames:
-            if not filename.endswith('.rst'):
+            if not filename.endswith(".rst"):
                 continue
             blurbs.load_next(filename)
 
         metadata = blurbs[0][0]
 
-    metadata['release date'] = date
-    print('Saving.')
+    metadata["release date"] = date
+    print("Saving.")
 
     blurbs.save(output)
     git_add_files.append(output)
@@ -77,8 +77,8 @@ def release(version: str) -> None:
     assert blurbs2 == blurbs, f"Reloading {output} isn't reproducible?!"
 
     print()
-    print('Ready for commit.')
+    print("Ready for commit.")
 
 
 def current_date() -> str:
-    return time.strftime('%Y-%m-%d', time.localtime())
+    return time.strftime("%Y-%m-%d", time.localtime())
