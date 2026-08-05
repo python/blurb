@@ -123,10 +123,13 @@ Here's how you interact with the file:
   The section can also be specified via the ``-s`` / ``--section`` option:
 
   ```shell
-  $ blurb add -s Library
-  # or
-  $ blurb add -s library
+  $ blurb add -s 'Library'
+  # or equivalently
+  $ blurb add -s lib
   ```
+
+  The match is performed case insensitively and partial matching is
+  supported as long as the match is unique.
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
   This should be a single paragraph of English text using

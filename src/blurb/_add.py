@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -11,7 +12,12 @@ import tempfile
 from blurb._blurb_file import BlurbError, Blurbs
 from blurb._cli import error, prompt
 from blurb._git import flush_git_add_files, git_add_files
-from blurb._template import sections, template
+from blurb._template import (
+    _section_names_lower_nosep,
+    _section_special_patterns,
+    sections,
+    template,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -35,8 +41,8 @@ def add(*, issue: str | None = None, section: str | None = None):
     Use -s/--section to specify the section name (case-insensitive), e.g.:
 
         blurb add -s Library
-        # or
-        blurb add -s library
+        # or, using a partial match
+        blurb add -s lib
 
     The known sections names are defined as follows and
     spaces in names can be substituted for underscores:
@@ -176,6 +182,12 @@ def _extract_section_name(section: str | None, /) -> str | None:
     for section_name in sections:
         if section in {section_name, section_name.lower()}:
             matches.append(section_name)
+        if section_name.lower().startswith(section.lower()):
+            matches.append(section_name)
+
+    if not matches:
+        # Try a more complex algorithm if we are unlucky
+        matches = _find_smart_matches(section)
 
     if not matches:
         section_list = '\n'.join(f'* {s}' for s in sections)
@@ -188,6 +200,40 @@ def _extract_section_name(section: str | None, /) -> str | None:
         raise SystemExit(f'More than one match for {section!r}:\n\n{multiple_matches}')
 
     return matches[0]
+
+
+def _find_smart_matches(section):
+    # '_', '-' and ' ' are the allowed (user) whitespace separators
+    sanitized = re.sub(r'[_\- ]', ' ', section).strip()
+    if not sanitized:
+        return []
+
+    matches = []
+    section_words = re.split(r'\s+', sanitized)
+    # ' ' and '/' are the separators used by known sections
+    section_pattern = r'[ /]'.join(map(re.escape, section_words))
+    section_pattern = re.compile(section_pattern, re.I)
+
+    for section_name in sections:
+        # try to use the input as the pattern to match against known names
+        if section_pattern.match(section_name):
+            matches.append(section_name)
+
+    if not matches:
+        for section_name, special_patterns in _section_special_patterns.items():
+            for special_pattern in special_patterns:
+                if special_pattern.match(sanitized):
+                    matches.append(section_name)
+                    break
+
+    if not matches:
+        # try to use the input as the prefix of a flattened section name
+        normalized_prefix = ''.join(section_words).lower()
+        for section_name, normalized in _section_names_lower_nosep.items():
+            if normalized.startswith(normalized_prefix):
+                matches.append(section_name)
+
+    return matches
 
 
 def _add_blurb_from_template(args: Sequence[str], tmp_path: str) -> Blurbs | None:
