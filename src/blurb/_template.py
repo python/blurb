@@ -14,7 +14,7 @@ template = """
 
 #
 # Uncomment one of these "section:" lines to specify which section
-# this entry should go in in Misc/NEWS.d.
+# this entry should go in Misc/NEWS.d.
 #
 #.. section: Security
 #.. section: Core and Builtins
