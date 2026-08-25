@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = "") -> str:
+def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> str:
     """Wrap body text.
 
     Accepts either a string or an iterable of strings.
@@ -20,37 +20,37 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = "") -> 
     if isinstance(body, str):
         text = body
     else:
-        text = "\n".join(body).rstrip()
+        text = '\n'.join(body).rstrip()
 
     # textwrap merges paragraphs, ARGH
 
     # step 1: remove trailing whitespace from individual lines
     #   (this means that empty lines will just have \n, no invisible whitespace)
     lines = []
-    for line in text.split("\n"):
+    for line in text.split('\n'):
         lines.append(line.rstrip())
-    text = "\n".join(lines)
+    text = '\n'.join(lines)
     # step 2: break into paragraphs and wrap those
-    paragraphs = text.split("\n\n")
+    paragraphs = text.split('\n\n')
     paragraphs2 = []
-    kwargs: dict[str, object] = {"break_long_words": False, "break_on_hyphens": False}
+    kwargs: dict[str, object] = {'break_long_words': False, 'break_on_hyphens': False}
     if subsequent_indent:
-        kwargs["subsequent_indent"] = subsequent_indent
+        kwargs['subsequent_indent'] = subsequent_indent
     dont_reflow = False
     for paragraph in paragraphs:
         # don't reflow bulleted / numbered lists
-        dont_reflow = dont_reflow or paragraph.startswith(("* ", "1. ", "#. "))
+        dont_reflow = dont_reflow or paragraph.startswith(('* ', '1. ', '#. '))
         if dont_reflow:
-            initial = kwargs.get("initial_indent", "")
-            subsequent = kwargs.get("subsequent_indent", "")
+            initial = kwargs.get('initial_indent', '')
+            subsequent = kwargs.get('subsequent_indent', '')
             if initial or subsequent:
-                lines = [line.rstrip() for line in paragraph.split("\n")]
+                lines = [line.rstrip() for line in paragraph.split('\n')]
                 indents = itertools.chain(
                     itertools.repeat(initial, 1),
                     itertools.repeat(subsequent),
                 )
                 lines = [indent + line for indent, line in zip(indents, lines)]
-                paragraph = "\n".join(lines)
+                paragraph = '\n'.join(lines)
             paragraphs2.append(paragraph)
         else:
             # Why do we reflow the text twice?  Because it can actually change
@@ -88,23 +88,23 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = "") -> 
             # twice, so it's stable, and this means occasionally it'll
             # convert two spaces to one space, no big deal.
 
-            paragraph = "\n".join(
+            paragraph = '\n'.join(
                 textwrap.wrap(paragraph.strip(), width=76, **kwargs)
             ).rstrip()
-            paragraph = "\n".join(
+            paragraph = '\n'.join(
                 textwrap.wrap(paragraph.strip(), width=76, **kwargs)
             ).rstrip()
             paragraphs2.append(paragraph)
         # don't reflow literal code blocks (I hope)
-        dont_reflow = paragraph.endswith("::")
+        dont_reflow = paragraph.endswith('::')
         if subsequent_indent:
-            kwargs["initial_indent"] = subsequent_indent
-    text = "\n\n".join(paragraphs2).rstrip()
-    if not text.endswith("\n"):
-        text += "\n"
+            kwargs['initial_indent'] = subsequent_indent
+    text = '\n\n'.join(paragraphs2).rstrip()
+    if not text.endswith('\n'):
+        text += '\n'
     return text
 
 
 def generate_nonce(body: str) -> str:
-    digest = hashlib.md5(body.encode("utf-8")).digest()
-    return base64.urlsafe_b64encode(digest)[0:6].decode("ascii")
+    digest = hashlib.md5(body.encode('utf-8')).digest()
+    return base64.urlsafe_b64encode(digest)[0:6].decode('ascii')

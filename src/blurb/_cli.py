@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 subcommands: dict[str, CommandFunc] = {}
-readme_re = re.compile(r"This is \w+ version \d+\.\d+").match
+readme_re = re.compile(r'This is \w+ version \d+\.\d+').match
 
 
 def initialise_subcommands() -> None:
@@ -29,33 +29,33 @@ def initialise_subcommands() -> None:
     from blurb._release import release
 
     subcommands = {
-        "version": version,
-        "help": help,
-        "add": add,
-        "export": export,
-        "merge": merge,
-        "populate": populate,
-        "release": release,
+        'version': version,
+        'help': help,
+        'add': add,
+        'export': export,
+        'merge': merge,
+        'populate': populate,
+        'release': release,
         # Make 'blurb --help/--version/-V' work.
-        "--help": help,
-        "--version": version,
-        "-V": version,
+        '--help': help,
+        '--version': version,
+        '-V': version,
     }
 
 
 def error(msg: str, /) -> NoReturn:
-    raise SystemExit(f"Error: {msg}")
+    raise SystemExit(f'Error: {msg}')
 
 
 def prompt(prompt: str, /) -> str:
-    return input(f"[{prompt}> ")
+    return input(f'[{prompt}> ')
 
 
 def require_ok(prompt: str, /) -> str:
-    prompt = f"[{prompt}> "
+    prompt = f'[{prompt}> '
     while True:
         s = input(prompt).strip()
-        if s == "ok":
+        if s == 'ok':
             return s
 
 
@@ -68,7 +68,7 @@ def get_subcommand(subcommand: str, /) -> CommandFunc:
 
 def version() -> None:
     """Print blurb version."""
-    print("blurb version", blurb.__version__)
+    print('blurb version', blurb.__version__)
 
 
 def help(subcommand: str | None = None) -> None:
@@ -85,7 +85,7 @@ def help(subcommand: str | None = None) -> None:
     fn = get_subcommand(subcommand)
     doc = fn.__doc__.strip()
     if not doc:
-        error(f"help is broken, no docstring for {subcommand}")
+        error(f'help is broken, no docstring for {subcommand}')
 
     options = []
     positionals = []
@@ -95,24 +95,24 @@ def help(subcommand: str | None = None) -> None:
         if p.kind == inspect.Parameter.KEYWORD_ONLY:
             short_option = name[0]
             if isinstance(p.default, bool):
-                options.append(f" [-{short_option}|--{name}]")
+                options.append(f' [-{short_option}|--{name}]')
             else:
                 if p.default is None:
-                    metavar = f"{name.upper()}"
+                    metavar = f'{name.upper()}'
                 else:
-                    metavar = f"{name.upper()}[={p.default}]"
-                options.append(f" [-{short_option}|--{name} {metavar}]")
+                    metavar = f'{name.upper()}[={p.default}]'
+                options.append(f' [-{short_option}|--{name} {metavar}]')
         elif p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            positionals.append(" ")
+            positionals.append(' ')
             has_default = p.default != inspect._empty
             if has_default:
-                positionals.append("[")
+                positionals.append('[')
                 nesting += 1
-            positionals.append(f"<{name}>")
-    positionals.append("]" * nesting)
+            positionals.append(f'<{name}>')
+    positionals.append(']' * nesting)
 
-    parameters = "".join(options + positionals)
-    print(f"blurb {subcommand}{parameters}")
+    parameters = ''.join(options + positionals)
+    print(f'blurb {subcommand}{parameters}')
     print()
     print(doc)
     raise SystemExit(0)
@@ -121,35 +121,35 @@ def help(subcommand: str | None = None) -> None:
 def _blurb_help() -> None:
     """Print default help for blurb."""
 
-    print("blurb version", blurb.__version__)
+    print('blurb version', blurb.__version__)
     print()
-    print("Management tool for CPython Misc/NEWS and Misc/NEWS.d entries.")
+    print('Management tool for CPython Misc/NEWS and Misc/NEWS.d entries.')
     print()
-    print("Usage:")
-    print("    blurb [subcommand] [options...]")
+    print('Usage:')
+    print('    blurb [subcommand] [options...]')
     print()
 
     # print list of subcommands
     summaries = []
     longest_name_len = -1
     for name, fn in subcommands.items():
-        if name.startswith("-"):
+        if name.startswith('-'):
             continue
         longest_name_len = max(longest_name_len, len(name))
         if not fn.__doc__:
-            error(f"help is broken, no docstring for {fn.__name__}")
-        fields = fn.__doc__.lstrip().split("\n")
+            error(f'help is broken, no docstring for {fn.__name__}')
+        fields = fn.__doc__.lstrip().split('\n')
         if not fields:
-            first_line = "(no help available)"
+            first_line = '(no help available)'
         else:
             first_line = fields[0]
         summaries.append((name, first_line))
     summaries.sort()
 
-    print("Available subcommands:")
+    print('Available subcommands:')
     print()
     for name, summary in summaries:
-        print(" ", name.ljust(longest_name_len), " ", summary)
+        print(' ', name.ljust(longest_name_len), ' ', summary)
 
     print()
     print("If blurb is run without any arguments, this is equivalent to 'blurb add'.")
@@ -159,10 +159,10 @@ def main() -> None:
     args = sys.argv[1:]
 
     if not args:
-        args = ["add"]
-    elif args[0] == "-h":
+        args = ['add']
+    elif args[0] == '-h':
         # slight hack
-        args[0] = "help"
+        args[0] = 'help'
 
     subcommand = args[0]
     args = args[1:]
@@ -190,8 +190,8 @@ def main() -> None:
             if p.kind == inspect.Parameter.KEYWORD_ONLY:
                 if p.default is not None and not isinstance(p.default, (bool, str)):
                     raise SystemExit(
-                        "blurb command-line processing cannot handle "
-                        f"options of type {type(p.default).__qualname__}"
+                        'blurb command-line processing cannot handle '
+                        f'options of type {type(p.default).__qualname__}'
                     )
 
                 kwargs[name] = p.default
@@ -222,10 +222,10 @@ def main() -> None:
             if done_with_options:
                 filtered_args.append(a)
                 continue
-            if a.startswith("-"):
-                if a == "--":
+            if a.startswith('-'):
+                if a == '--':
                     done_with_options = True
-                elif a.startswith("--"):
+                elif a.startswith('--'):
                     handle_option(a[2:], long_options)
                 else:
                     for s in a[1:]:
@@ -235,8 +235,8 @@ def main() -> None:
 
         if consume_after:
             raise SystemExit(
-                f"Error: blurb: {subcommand} {consume_after} "
-                "must be followed by an option argument"
+                f'Error: blurb: {subcommand} {consume_after} '
+                'must be followed by an option argument'
             )
 
         raise SystemExit(fn(*filtered_args, **kwargs))
@@ -256,27 +256,27 @@ def main() -> None:
             # whoops, must be a real type error, reraise
             raise e
 
-        how_many = f"{specified} argument"
+        how_many = f'{specified} argument'
         if specified != 1:
-            how_many += "s"
+            how_many += 's'
 
         if total == 0:
-            middle = "accepts no arguments"
+            middle = 'accepts no arguments'
         else:
             if total == required:
-                middle = "requires"
+                middle = 'requires'
             else:
-                plural = "" if required == 1 else "s"
-                middle = f"requires at least {required} argument{plural} and at most"
-            middle += f" {total} argument"
+                plural = '' if required == 1 else 's'
+                middle = f'requires at least {required} argument{plural} and at most'
+            middle += f' {total} argument'
             if total != 1:
-                middle += "s"
+                middle += 's'
 
         print(
-            f"Error: Wrong number of arguments!\n\nblurb {subcommand} {middle},\nand you specified {how_many}."
+            f'Error: Wrong number of arguments!\n\nblurb {subcommand} {middle},\nand you specified {how_many}.'
         )
         print()
-        print("usage: ", end="")
+        print('usage: ', end='')
         help(subcommand)
 
 
@@ -287,7 +287,7 @@ def chdir_to_repo_root() -> str:
 
     # we intentionally start in a (probably nonexistant) subtree
     # the first thing the while loop does is .., basically
-    path = os.path.abspath("garglemox")
+    path = os.path.abspath('garglemox')
     while True:
         next_path = os.path.dirname(path)
         if next_path == path:
@@ -299,23 +299,23 @@ def chdir_to_repo_root() -> str:
         def test_first_line(filename, test):
             if not os.path.exists(filename):
                 return False
-            with open(filename, encoding="utf-8") as file:
-                lines = file.read().split("\n")
+            with open(filename, encoding='utf-8') as file:
+                lines = file.read().split('\n')
                 if not (lines and test(lines[0])):
                     return False
             return True
 
         if not (
-            test_first_line("README", readme_re)
-            or test_first_line("README.rst", readme_re)
+            test_first_line('README', readme_re)
+            or test_first_line('README.rst', readme_re)
         ):
             continue
 
-        if not test_first_line("LICENSE", "A. HISTORY OF THE SOFTWARE".__eq__):
+        if not test_first_line('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
             continue
-        if not os.path.exists("Include/Python.h"):
+        if not os.path.exists('Include/Python.h'):
             continue
-        if not os.path.exists("Python/ceval.c"):
+        if not os.path.exists('Python/ceval.c'):
             continue
 
         break

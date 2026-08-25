@@ -100,7 +100,7 @@ class Blurbs(list):
         text: str,
         *,
         metadata: dict[str, str] | None = None,
-        filename: str = "input",
+        filename: str = 'input',
     ) -> None:
         """Parses a string.
 
@@ -115,7 +115,7 @@ class Blurbs(list):
         line_number = None
 
         def throw(s: str):
-            raise BlurbError(f"Error in {filename}:{line_number}:\n{s}")
+            raise BlurbError(f'Error in {filename}:{line_number}:\n{s}')
 
         def finish_entry() -> None:
             nonlocal body
@@ -126,15 +126,15 @@ class Blurbs(list):
             if not body:
                 throw("Blurb 'body' text must not be empty!")
             text = textwrap_body(body)
-            for naughty_prefix in ("- ", "Issue #", "bpo-", "gh-", "gh-issue-"):
+            for naughty_prefix in ('- ', 'Issue #', 'bpo-', 'gh-', 'gh-issue-'):
                 if re.match(naughty_prefix, text, re.I):
                     throw(f"Blurb 'body' can't start with {naughty_prefix!r}!")
 
-            no_changes = metadata.get("no changes")
+            no_changes = metadata.get('no changes')
 
             issue_keys = {
-                "gh-issue": "GitHub",
-                "bpo": "bpo",
+                'gh-issue': 'GitHub',
+                'bpo': 'bpo',
             }
             for key, value in metadata.items():
                 # Iterate over metadata items in order.
@@ -149,25 +149,25 @@ class Blurbs(list):
                     try:
                         int(value)
                     except (TypeError, ValueError):
-                        throw(f"Invalid {issue_keys[key]} number: {value!r}")
+                        throw(f'Invalid {issue_keys[key]} number: {value!r}')
 
-                if key == "gh-issue" and int(value) < lowest_possible_gh_issue_number:
+                if key == 'gh-issue' and int(value) < lowest_possible_gh_issue_number:
                     throw(
-                        f"Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})"
+                        f'Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})'
                     )
 
-                if key == "section":
+                if key == 'section':
                     if no_changes:
                         continue
                     if value not in sections:
                         throw(
-                            f"Invalid section {value!r}!  You must use one of the predefined sections."
+                            f'Invalid section {value!r}!  You must use one of the predefined sections.'
                         )
 
-            if "gh-issue" not in metadata and "bpo" not in metadata:
+            if 'gh-issue' not in metadata and 'bpo' not in metadata:
                 throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")
 
-            if "section" not in metadata:
+            if 'section' not in metadata:
                 throw("No 'section' specified.  You must provide one!")
 
             self.append((metadata, text))
@@ -175,24 +175,24 @@ class Blurbs(list):
             body = []
             in_metadata = True
 
-        for line_number, line in enumerate(text.split("\n")):
+        for line_number, line in enumerate(text.split('\n')):
             line = line.rstrip()
             if in_metadata:
-                if line.startswith(".."):
+                if line.startswith('..'):
                     line = line[2:].strip()
-                    name, colon, value = line.partition(":")
+                    name, colon, value = line.partition(':')
                     assert colon
                     name = name.lower().strip()
                     value = value.strip()
                     if name in metadata:
-                        throw(f"Blurb metadata sets {name!r} twice!")
+                        throw(f'Blurb metadata sets {name!r} twice!')
                     metadata[name] = value
                     continue
-                if line.startswith("#") or not line:
+                if line.startswith('#') or not line:
                     continue
                 in_metadata = False
 
-            if line == "..":
+            if line == '..':
                 finish_entry()
                 continue
             body.append(line)
@@ -204,7 +204,7 @@ class Blurbs(list):
 
         Broadly equivalent to blurb.parse(open(filename).read()).
         """
-        with open(filename, encoding="utf-8") as file:
+        with open(filename, encoding='utf-8') as file:
             text = file.read()
         self.parse(text, metadata=metadata, filename=filename)
 
@@ -214,22 +214,22 @@ class Blurbs(list):
         add_separator = False
         for metadata, body in self:
             if add_separator:
-                add("\n..\n\n")
+                add('\n..\n\n')
             else:
                 add_separator = True
             if metadata:
                 for name, value in sorted(metadata.items()):
-                    add(f".. {name}: {value}\n")
-                add("\n")
+                    add(f'.. {name}: {value}\n')
+                add('\n')
             add(textwrap_body(body))
-        return "".join(output)
+        return ''.join(output)
 
     def save(self, path: str) -> None:
         dirname = os.path.dirname(path)
         os.makedirs(dirname, exist_ok=True)
 
         text = str(self)
-        with open(path, "w", encoding="utf-8") as file:
+        with open(path, 'w', encoding='utf-8') as file:
             file.write(text)
 
     @staticmethod
@@ -238,19 +238,19 @@ class Blurbs(list):
         components = filename.split(os.sep)
         section, filename = components[-2:]
         section = unsanitize_section(section)
-        assert section in sections, f"Unknown section {section}"
+        assert section in sections, f'Unknown section {section}'
 
-        fields = [x.strip() for x in filename.split(".")]
+        fields = [x.strip() for x in filename.split('.')]
         assert len(fields) >= 4, (
             f"Can't parse 'next' filename! filename {filename!r} fields {fields}"
         )
-        assert fields[-1] == "rst"
+        assert fields[-1] == 'rst'
 
-        metadata = {"date": fields[0], "nonce": fields[-2], "section": section}
+        metadata = {'date': fields[0], 'nonce': fields[-2], 'section': section}
 
         for field in fields[1:-2]:
-            for name in ("gh-issue", "bpo"):
-                _, got, value = field.partition(f"{name}-")
+            for name in ('gh-issue', 'bpo'):
+                _, got, value = field.partition(f'{name}-')
                 if got:
                     metadata[name] = value.strip()
                     break
@@ -268,12 +268,12 @@ class Blurbs(list):
 
     def ensure_metadata(self) -> None:
         metadata, body = self[-1]
-        assert "section" in metadata
+        assert 'section' in metadata
         for name, default in (
-            ("gh-issue", "0"),
-            ("bpo", "0"),
-            ("date", sortable_datetime()),
-            ("nonce", generate_nonce(body)),
+            ('gh-issue', '0'),
+            ('bpo', '0'),
+            ('date', sortable_datetime()),
+            ('nonce', generate_nonce(body)),
         ):
             if name not in metadata:
                 metadata[name] = default
@@ -282,18 +282,18 @@ class Blurbs(list):
         """Changes metadata!"""
         self.ensure_metadata()
         metadata, body = self[-1]
-        metadata["section"] = sanitize_section(metadata["section"])
-        metadata["root"] = root
-        if int(metadata["gh-issue"]) > 0:
-            path = "{root}/Misc/NEWS.d/next/{section}/{date}.gh-issue-{gh-issue}.{nonce}.rst".format_map(
+        metadata['section'] = sanitize_section(metadata['section'])
+        metadata['root'] = root
+        if int(metadata['gh-issue']) > 0:
+            path = '{root}/Misc/NEWS.d/next/{section}/{date}.gh-issue-{gh-issue}.{nonce}.rst'.format_map(
                 metadata
             )
-        elif int(metadata["bpo"]) > 0:
+        elif int(metadata['bpo']) > 0:
             # assume it's a GH issue number
-            path = "{root}/Misc/NEWS.d/next/{section}/{date}.bpo-{bpo}.{nonce}.rst".format_map(
+            path = '{root}/Misc/NEWS.d/next/{section}/{date}.bpo-{bpo}.{nonce}.rst'.format_map(
                 metadata
             )
-        for name in ("root", "section", "date", "gh-issue", "bpo", "nonce"):
+        for name in ('root', 'section', 'date', 'gh-issue', 'bpo', 'nonce'):
             del metadata[name]
         return path
 
@@ -309,4 +309,4 @@ class Blurbs(list):
 
 
 def sortable_datetime() -> str:
-    return time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+    return time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime())

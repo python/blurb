@@ -7,4 +7,4 @@ def test_version(capfd):
 
     # Assert
     captured = capfd.readouterr()
-    assert captured.out.startswith("blurb version ")
+    assert captured.out.startswith('blurb version ')
