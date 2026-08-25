@@ -9,9 +9,7 @@ requires = [
 name = "blurb"
 description = "Command-line tool to manage CPython Misc/NEWS.d entries."
 readme = "README.md"
-maintainers = [
-  { name = "Python Core Team", email = "core-workflow@mail.python.org" },
-]
+maintainers = [ { name = "Python Core Team" } ]
 authors = [
   { name = "Larry Hastings", email = "larry@hastings.org" },
 ]
