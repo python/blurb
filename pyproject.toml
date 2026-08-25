@@ -10,7 +10,7 @@ name = "blurb"
 description = "Command-line tool to manage CPython Misc/NEWS.d entries."
 readme = "README.md"
 maintainers = [
-  { name = "Python Core Developers", email = "core-workflow@mail.python.org" },
+  { name = "Python Core Team", email = "core-workflow@mail.python.org" },
 ]
 authors = [
   { name = "Larry Hastings", email = "larry@hastings.org" },
@@ -27,9 +27,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: 3.15",
 ]
-dynamic = [
-  "version",
-]
+dynamic = [ "version" ]
 optional-dependencies.tests = [
   "pyfakefs",
   "pytest",
@@ -45,6 +43,19 @@ scripts.blurb = "blurb._cli:main"
 version.source = "vcs"
 version.raw-options.local_scheme = "no-local-version"
 build.hooks.vcs.version-file = "src/blurb/_version.py"
+
+[tool.ruff]
+fix = true
+format.preview = true
+format.quote-style = "single"
+format.docstring-code-format = true
+lint.select = [
+  "I", # isort
+]
+lint.ignore = [
+  "E501", # Ignore line length errors (we use auto-formatting)
+]
+lint.preview = true
 
 [tool.pyproject-fmt]
 max_supported_python = "3.15"
