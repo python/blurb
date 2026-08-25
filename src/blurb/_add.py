@@ -73,7 +73,7 @@ def add(*, issue: str | None = None, section: str | None = None):
     print('Ready for commit.')
 
 
-add.__doc__ = add.__doc__.format(sections='\n'.join(f'* {s}' for s in sections))
+add.__doc__ = add.__doc__.format(sections='\n'.join(f'    * {s}' for s in sections))
 
 
 def _editor_args() -> list[str]:

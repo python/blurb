@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import os
 import re
 import sys
@@ -54,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     def add_subcommand(name: str, doc: str) -> argparse.ArgumentParser:
-        doc = doc.strip()
+        doc = inspect.cleandoc(doc)
         return subparsers.add_parser(
             name,
             description=doc,
