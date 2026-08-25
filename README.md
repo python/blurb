@@ -62,6 +62,12 @@ managers.
 
 
 
+### blurb help
+
+Run `blurb --help` for a list of subcommands,
+and `blurb <subcommand> --help` for help on a specific subcommand.
+
+
 ### blurb add
 
 `blurb add` adds a new `Misc/NEWS` entry for you.
