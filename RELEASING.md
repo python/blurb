@@ -25,5 +25,5 @@
 - [ ] Check installation:
 
   ```bash
-  python -m pip uninstall -y blurb && python -m pip install -U blurb && blurb help
+  python -m pip uninstall -y blurb && python -m pip install -U blurb && blurb --help
   ```
