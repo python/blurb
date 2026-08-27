@@ -78,7 +78,7 @@ The template for the `blurb add` message looks like this:
 
     #
     # Uncomment one of these "section:" lines to specify which section
-    # this entry should go in in Misc/NEWS.
+    # this entry should go in Misc/NEWS.
     #
     #.. section: Security
     #.. section: Core and Builtins
