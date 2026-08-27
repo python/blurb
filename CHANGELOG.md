@@ -1,16 +1,16 @@
 # Changelog
 
-## 2.2.0
-
-* Add support for Python 3.15 by @hugovk in https://github.com/python/blurb/pull/74
-* Keep sections in importance order by @hugovk in https://github.com/python/blurb/pull/75
-
 ## 2.1.0
 
-- Add the `-i` / `--issue` option to the 'blurb add' command.
+* Add support for Python 3.15 by @hugovk in https://github.com/python/blurb/pull/74
+* Drop support for Python 3.9 by @hugovk in https://github.com/python/blurb/pull/68
+* Keep sections in importance order by @hugovk in https://github.com/python/blurb/pull/75
+* Add the `-i` / `--issue` option to the 'blurb add' command.
   This lets you pre-fill the `gh-issue` field in the template.
-- Add the `-s` / `--section` option to the 'blurb add' command.
+* Add the `-s` / `--section` option to the 'blurb add' command.
   This lets you pre-fill the `section` field in the template.
+* Use `argparse` for the CLI by @hugovk in https://github.com/python/blurb/pull/83
+* Fix a typo in the new entry template by @StanFromIreland in https://github.com/python/blurb/pull/84
 
 ## 2.0.0
 
