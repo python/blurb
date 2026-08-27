@@ -62,12 +62,6 @@ managers.
 
 
 
-### blurb help
-
-Run `blurb --help` for a list of subcommands,
-and `blurb <subcommand> --help` for help on a specific subcommand.
-
-
 ### blurb add
 
 `blurb add` adds a new `Misc/NEWS` entry for you.
@@ -220,6 +214,12 @@ don't need to touch anything up — the system will already do
 the right thing.  If `NEWS` entries were already written to the
 final version directory, you'd have to move those around as
 part of the cherry-picking process.
+
+## Getting help
+
+Run `blurb --help` for a list of subcommands,
+and `blurb <subcommand> --help` for help on a specific subcommand.
+
 
 ## Copyright
 
