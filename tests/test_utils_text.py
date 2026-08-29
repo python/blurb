@@ -40,6 +40,33 @@ from blurb._utils.text import textwrap_body
             '    * Item 1\n'
             '    * Item 2\n',
         ),
+        (
+            'This is a test of the textwrap_body function with a dashed list and subsequent indent. The list should not be wrapped.\n'
+            '\n'
+            '- Item 1\n'
+            '- Item 2\n',
+            '    ',
+            'This is a test of the textwrap_body function with a dashed list and\n'
+            '    subsequent indent. The list should not be wrapped.\n'
+            '\n'
+            '    - Item 1\n'
+            '    - Item 2\n',
+        ),
+        (
+            'The following `threading` methods are now deprecated and should be replaced:\n'
+            '\n'
+            '- `threading.activeCount` => :func:`threading.active_count`\n'
+            '\n'
+            '- `threading.Condition.notifyAll` =>\n'
+            '    :meth:`threading.Condition.notify_all`\n',
+            '  ',
+            'The following `threading` methods are now deprecated and should be replaced:\n'
+            '\n'
+            '  - `threading.activeCount` => :func:`threading.active_count`\n'
+            '\n'
+            '  - `threading.Condition.notifyAll` =>\n'
+            '      :meth:`threading.Condition.notify_all`\n',
+        ),
     ),
 )
 def test_textwrap_body(body, subsequent_indent, expected):
