@@ -1,10 +1,10 @@
 import glob
 import os
+from contextlib import chdir
 
 import pytest
 
 from blurb._blurb_file import Blurbs
-from blurb._versions import chdir
 
 
 class TestParserPasses:
