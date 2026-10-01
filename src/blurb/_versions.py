@@ -1,23 +1,7 @@
 from __future__ import annotations
 
 import glob
-import sys
-
-if sys.version_info[:2] >= (3, 11):
-    from contextlib import chdir
-else:
-    import os
-
-    class chdir:
-        def __init__(self, path: str, /) -> None:
-            self.path = path
-
-        def __enter__(self) -> None:
-            self.previous_cwd = os.getcwd()
-            os.chdir(self.path)
-
-        def __exit__(self, *args) -> None:
-            os.chdir(self.previous_cwd)
+from contextlib import chdir
 
 
 def glob_versions() -> list[str]:
