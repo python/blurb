@@ -39,7 +39,7 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
     dont_reflow = False
     for paragraph in paragraphs:
         # don't reflow bulleted / numbered lists
-        dont_reflow = dont_reflow or paragraph.startswith(('* ', '1. ', '#. '))
+        dont_reflow = dont_reflow or paragraph.startswith(('* ', '- ', '1. ', '#. '))
         if dont_reflow:
             initial = kwargs.get('initial_indent', '')
             subsequent = kwargs.get('subsequent_indent', '')
