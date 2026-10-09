@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0
+
+* Allow `gh-issue 0` for "no changes" release entries by @hugovk in https://github.com/python/blurb/pull/92
+
 ## 2.2.0
 
 * Add support for Python 3.15 by @hugovk in https://github.com/python/blurb/pull/74
