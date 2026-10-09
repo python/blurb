@@ -1,9 +1,9 @@
 # Release Checklist
 
-- [ ] check tests pass on [GitHub Actions](https://github.com/python/blurb/actions)
+- [ ] Check tests pass on [GitHub Actions](https://github.com/python/blurb/actions)
       [![GitHub Actions status](https://github.com/python/blurb/actions/workflows/test.yml/badge.svg)](https://github.com/python/blurb/actions/workflows/test.yml)
 
-- [ ] Update [changelog](https://github.com/python/blurb/blob/main/CHANGELOG.md)
+- [ ] Update the [changelog](https://github.com/python/blurb/blob/main/CHANGELOG.md)
 
 - [ ] Go to the [Releases page](https://github.com/python/blurb/releases) and
 
