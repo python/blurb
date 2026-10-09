@@ -2,6 +2,7 @@
 
 ## 2.2.0
 
+* Drop support for EOL Python 3.10 by @hugovk in https://github.com/python/blurb/pull/90
 * Allow `gh-issue 0` for "no changes" release entries by @hugovk in https://github.com/python/blurb/pull/92
 
 ## 2.1.0
