@@ -151,7 +151,11 @@ class Blurbs(list):
                     except (TypeError, ValueError):
                         throw(f'Invalid {issue_keys[key]} number: {value!r}')
 
-                if key == 'gh-issue' and int(value) < lowest_possible_gh_issue_number:
+                if (
+                    key == 'gh-issue'
+                    and not no_changes
+                    and int(value) < lowest_possible_gh_issue_number
+                ):
                     throw(
                         f'Invalid gh-issue number: {value!r} (must be >= {lowest_possible_gh_issue_number})'
                     )

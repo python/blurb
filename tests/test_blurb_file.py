@@ -97,6 +97,26 @@ def test_parse():
     assert body == 'Hello world!\n'
 
 
+def test_parse_no_changes():
+    # Arrange
+    contents = (
+        '.. gh-issue: 0\n'
+        '.. no changes: True\n'
+        '.. section: Library\n'
+        'There were no new changes in version 3.15.0.'
+    )
+    blurbs = Blurbs()
+
+    # Act
+    blurbs.parse(contents)
+
+    # Assert
+    metadata, body = blurbs[0]
+    assert metadata['gh-issue'] == '0'
+    assert metadata['no changes'] == 'True'
+    assert body == 'There were no new changes in version 3.15.0.\n'
+
+
 @pytest.mark.parametrize(
     'contents, expected_error',
     (
