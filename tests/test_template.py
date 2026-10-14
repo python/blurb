@@ -3,7 +3,7 @@ import pytest
 import blurb._template
 from blurb._template import sanitize_section, unsanitize_section
 
-UNCHANGED_SECTIONS = ('Library',)
+UNCHANGED_SECTIONS = ('Library', 'iOS', 'FreeBSD', 'WebAssembly')
 
 
 def test_section_names():
@@ -16,6 +16,11 @@ def test_section_names():
         'Build',
         'Windows',
         'macOS',
+        'iOS',
+        'Android',
+        'FreeBSD',
+        'WebAssembly',
+        'Unsupported platforms',
         'IDLE',
         'Tools/Demos',
         'C API',
@@ -34,6 +39,7 @@ def test_sanitize_section_no_change(section):
         ('C API', 'C_API'),
         ('Core and Builtins', 'Core_and_Builtins'),
         ('Tools/Demos', 'Tools-Demos'),
+        ('Unsupported platforms', 'Unsupported_platforms'),
     ),
 )
 def test_sanitize_section_changed(section, expected):
@@ -49,7 +55,10 @@ def test_unsanitize_section_no_change(section):
 
 @pytest.mark.parametrize(
     'section, expected',
-    (('Tools-Demos', 'Tools/Demos'),),
+    (
+        ('Tools-Demos', 'Tools/Demos'),
+        ('Unsupported_platforms', 'Unsupported platforms'),
+    ),
 )
 def test_unsanitize_section_changed(section, expected):
     unsanitized = unsanitize_section(section)
