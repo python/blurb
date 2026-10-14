@@ -95,14 +95,19 @@ Python News
                 prnt(section)
                 prnt('-' * len(section))
                 prnt()
+            prefix = ''
             if metadata.get('gh-issue'):
                 issue_number = metadata['gh-issue']
                 if int(issue_number):
-                    body = f'gh-{issue_number}: {body}'
+                    prefix = f'gh-{issue_number}'
             elif metadata.get('bpo'):
                 issue_number = metadata['bpo']
                 if int(issue_number):
-                    body = f'bpo-{issue_number}: {body}'
+                    prefix = f'bpo-{issue_number}'
+            if cve := metadata.get('cve'):
+                prefix = f'{prefix}, {cve}' if prefix else cve
+            if prefix:
+                body = f'{prefix}: {body}'
 
             body = f'- {body}'
             text = textwrap_body(body, subsequent_indent='  ')

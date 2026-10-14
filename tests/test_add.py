@@ -5,6 +5,8 @@ import pytest
 import blurb._add
 from blurb._add import (
     _blurb_template_text,
+    _check_commented_cve,
+    _extract_cve,
     _extract_issue_number,
     _extract_section_name,
 )
@@ -183,3 +185,73 @@ def test_invalid_section_name(section):
 
     with pytest.raises(SystemExit, match=error_message):
         _blurb_template_text(issue=None, section=section)
+
+
+def test_no_cve():
+    assert _extract_cve(None) is None
+    res = _blurb_template_text(issue=None, section=None)
+    lines = frozenset(res.splitlines())
+    assert '#.. cve:' in lines
+    assert '.. section: Security' not in lines
+
+
+@pytest.mark.parametrize(
+    ('cve', 'section'),
+    [
+        ('CVE-2025-12345', None),
+        ('cve-2025-12345', 'Security'),
+        (' 2025-12345 ', 'security'),
+    ],
+)
+def test_valid_cve(cve, section):
+    assert _extract_cve(cve) == 'CVE-2025-12345'
+
+    res = _blurb_template_text(issue=None, section=section, cve=cve)
+    lines = frozenset(res.splitlines())
+    assert '#.. cve:' not in lines
+    assert '.. cve: CVE-2025-12345' in lines
+    # Giving a CVE selects the Security section.
+    assert '.. section: Security' in lines
+    assert '#.. section: Security' not in lines
+    assert '#.. section: Library' in lines
+
+
+@pytest.mark.parametrize('cve', ['', 'abc', 'CVE-25-1', 'CVE-2025', 'CVE-2025-1'])
+def test_invalid_cve(cve):
+    error_message = re.escape(f'Invalid CVE identifier: {cve}')
+    with pytest.raises(SystemExit, match=error_message):
+        _blurb_template_text(issue=None, section=None, cve=cve)
+
+
+@pytest.mark.parametrize('section', [s for s in SECTIONS if s != 'Security'])
+def test_cve_wrong_section(section):
+    error_message = re.escape("A CVE may only be given for the 'Security' section")
+    with pytest.raises(SystemExit, match=error_message):
+        _blurb_template_text(issue=None, section=section, cve='CVE-2025-12345')
+
+
+def test_malformed_cve_line(monkeypatch):
+    template = blurb_template.replace('#.. cve:', '#.. cve: ')
+    error_message = re.escape("Can't find cve line in the template!")
+    with monkeypatch.context() as cm:
+        cm.setattr(blurb._add, 'template', template)
+        with pytest.raises(SystemExit, match=error_message):
+            _blurb_template_text(issue=None, section=None, cve='CVE-2025-12345')
+
+
+@pytest.mark.parametrize(
+    ('line', 'expected'),
+    [
+        ('#.. cve:', ''),
+        ('#.. cve: ', ''),
+        ('.. cve: CVE-2025-12345', ''),
+        ('#.. cve: CVE-2025-12345', 'still commented out'),
+        ('#.. cve:CVE-2025-12345', 'still commented out'),
+    ],
+)
+def test_check_commented_cve(line, expected, tmp_path):
+    path = tmp_path / 'entry.rst'
+    path.write_text(f'.. gh-issue: 123456\n.. section: Security\n{line}\n\nBody.\n')
+    result = _check_commented_cve(str(path))
+    assert expected in result
+    assert bool(result) == bool(expected)

@@ -43,6 +43,13 @@ class TestParser:
         args = build_parser().parse_args(['add'])
         assert args.issue is None
         assert args.section is None
+        assert args.cve is None
+
+    def test_add_cve(self):
+        args = build_parser().parse_args(['add', '-c', 'CVE-2025-12345'])
+        assert args.cve == 'CVE-2025-12345'
+        args = build_parser().parse_args(['add', '--cve', 'CVE-2025-12345'])
+        assert args.cve == 'CVE-2025-12345'
 
     def test_add_short_options(self):
         args = build_parser().parse_args(['add', '-i', '12345', '-s', 'Library'])
@@ -143,14 +150,14 @@ class TestMain:
         # 'blurb' with no arguments is equivalent to 'blurb add'
         calls = []
 
-        def fake_add(*, issue, section):
+        def fake_add(*, issue, section, cve):
             """Add a blurb."""
-            calls.append((issue, section))
+            calls.append((issue, section, cve))
 
         monkeypatch.setattr('blurb._add.add', fake_add)
         monkeypatch.setattr('blurb._cli.chdir_to_repo_root', lambda: '/')
         main([])
-        assert calls == [(None, None)]
+        assert calls == [(None, None, None)]
 
     def test_subcommand_gets_repo_root(self, monkeypatch):
         chdir_calls = []

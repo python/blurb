@@ -28,6 +28,11 @@ template = """
 #.. section: Tools/Demos
 #.. section: C API
 
+# If this is a Security entry, you may also add the CVE identifier
+# for the vulnerability.
+#
+#.. cve:
+
 # Write your Misc/NEWS.d entry below.  It should be a simple ReST paragraph.
 # Don't start with "- Issue #<n>: " or "- gh-issue-<n>: " or that sort of stuff.
 ###########################################################################

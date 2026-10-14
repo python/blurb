@@ -58,6 +58,13 @@ also terminates the last ENTRY.
 
 -----------------------------------------------------------------------------
 
+Optional metadata:
+
+  * "cve" names the CVE identifier (e.g. "CVE-2026-12345") addressed
+    by the entry.  It may only be used in the "Security" section.
+
+-----------------------------------------------------------------------------
+
 The format of a "next" file is exactly the same, except that we're storing
 four pieces of metadata in the filename instead of in the metadata section.
 Those four pieces of metadata are: section, gh-issue, date, and nonce.
@@ -88,10 +95,26 @@ from blurb._utils.text import generate_nonce, textwrap_body
 
 root = None  # Set by chdir_to_repo_root()
 lowest_possible_gh_issue_number = 32426
+cve_section = 'Security'
+
+_cve_re = re.compile(r'(?:CVE-)?(\d{4})-(\d{4,})', re.IGNORECASE | re.ASCII)
 
 
 class BlurbError(RuntimeError):
     pass
+
+
+def normalize_cve(value: str, /) -> str | None:
+    """Return a CVE identifier in canonical "CVE-YYYY-NNNN" form.
+
+    Accepts a case-insensitive "CVE-" prefix, or none at all.
+    Returns None if the value isn't a valid CVE identifier.
+    """
+    match = _cve_re.fullmatch(value.strip())
+    if match is None:
+        return None
+    year, number = match.groups()
+    return f'CVE-{year}-{number}'
 
 
 class Blurbs(list):
@@ -167,6 +190,17 @@ class Blurbs(list):
                         throw(
                             f'Invalid section {value!r}!  You must use one of the predefined sections.'
                         )
+
+                if key == 'cve':
+                    cve = normalize_cve(value)
+                    if cve is None:
+                        throw(
+                            f'Invalid CVE identifier: {value!r} (expected CVE-YYYY-NNNN)'
+                        )
+                    metadata[key] = cve
+
+            if 'cve' in metadata and metadata.get('section') != cve_section:
+                throw(f"'cve:' may only be used in the {cve_section!r} section!")
 
             if 'gh-issue' not in metadata and 'bpo' not in metadata:
                 throw("'gh-issue:' or 'bpo:' must be specified in the metadata!")

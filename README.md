@@ -92,6 +92,11 @@ The template for the `blurb add` message looks like this:
     #.. section: Tools/Demos
     #.. section: C API
 
+    # If this is a Security entry, you may also add the CVE identifier
+    # for the vulnerability.
+    #
+    #.. cve:
+
     # Write your Misc/NEWS entry below.  It should be a simple ReST paragraph.
     # Don't start with "- Issue #<n>: " or "- gh-issue<n>: " or that sort of stuff.
     ###########################################################################
@@ -118,6 +123,16 @@ Here's how you interact with the file:
   $ blurb add -s Library
   # or
   $ blurb add -s library
+  ```
+
+* If the entry is for the `Security` section, you may optionally
+  uncomment the `#.. cve:` line and add the CVE identifier for the
+  vulnerability, e.g. `.. cve: CVE-2026-12345`.
+  The CVE can also be specified via the ``-c`` / ``--cve`` option,
+  which also selects the `Security` section:
+
+  ```shell
+  $ blurb add -i 12345 -c CVE-2025-12345
   ```
 
 * Finally, go to the end of the file, and enter your `NEWS` entry.
