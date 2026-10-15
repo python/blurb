@@ -3,7 +3,7 @@ import pytest
 import blurb._template
 from blurb._template import sanitize_section, unsanitize_section
 
-UNCHANGED_SECTIONS = ('Library', 'iOS', 'FreeBSD', 'WebAssembly')
+UNCHANGED_SECTIONS = ('Library', 'iOS', 'FreeBSD', 'WASI')
 
 
 def test_section_names():
@@ -19,7 +19,8 @@ def test_section_names():
         'iOS',
         'Android',
         'FreeBSD',
-        'WebAssembly',
+        'WASI',
+        'Emscripten',
         'Unsupported platforms',
         'IDLE',
         'Tools/Demos',

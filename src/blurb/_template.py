@@ -27,7 +27,8 @@ template = """
 #.. section: iOS
 #.. section: Android
 #.. section: FreeBSD
-#.. section: WebAssembly
+#.. section: WASI
+#.. section: Emscripten
 #.. section: Unsupported platforms
 #.. section: IDLE
 #.. section: Tools/Demos

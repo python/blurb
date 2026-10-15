@@ -91,7 +91,8 @@ The template for the `blurb add` message looks like this:
     #.. section: iOS
     #.. section: Android
     #.. section: FreeBSD
-    #.. section: WebAssembly
+    #.. section: WASI
+    #.. section: Emscripten
     #.. section: Unsupported platforms
     #.. section: IDLE
     #.. section: Tools/Demos
