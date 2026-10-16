@@ -88,6 +88,12 @@ The template for the `blurb add` message looks like this:
     #.. section: Build
     #.. section: Windows
     #.. section: macOS
+    #.. section: iOS
+    #.. section: Android
+    #.. section: FreeBSD
+    #.. section: WASI
+    #.. section: Emscripten
+    #.. section: Unsupported platforms
     #.. section: IDLE
     #.. section: Tools/Demos
     #.. section: C API

@@ -24,6 +24,12 @@ template = """
 #.. section: Build
 #.. section: Windows
 #.. section: macOS
+#.. section: iOS
+#.. section: Android
+#.. section: FreeBSD
+#.. section: WASI
+#.. section: Emscripten
+#.. section: Unsupported platforms
 #.. section: IDLE
 #.. section: Tools/Demos
 #.. section: C API
@@ -46,12 +52,14 @@ _sanitize_section = {
     'C API': 'C_API',
     'Core and Builtins': 'Core_and_Builtins',
     'Tools/Demos': 'Tools-Demos',
+    'Unsupported platforms': 'Unsupported_platforms',
 }
 
 _unsanitize_section = {
     'C_API': 'C API',
     'Core_and_Builtins': 'Core and Builtins',
     'Tools-Demos': 'Tools/Demos',
+    'Unsupported_platforms': 'Unsupported platforms',
 }
 
 

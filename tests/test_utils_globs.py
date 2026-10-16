@@ -64,7 +64,8 @@ def test_glob_blurbs_section_ordering(fs) -> None:
     """Sections must appear in importance order, not alphabetical order.
 
     The canonical order is: Security, Core and Builtins, Library,
-    Documentation, Tests, Build, Windows, macOS, IDLE, Tools/Demos, C API.
+    Documentation, Tests, Build, Windows, macOS, iOS, Android, FreeBSD, WASI,
+    Emscripten, Unsupported platforms, IDLE, Tools/Demos, C API.
     """
     # Arrange: one entry per section
     fake_news_entries = [
@@ -76,9 +77,15 @@ def test_glob_blurbs_section_ordering(fs) -> None:
         'Misc/NEWS.d/next/Build/2024-01-01-00-00-00.gh-issue-00005.fFFFFF.rst',
         'Misc/NEWS.d/next/Windows/2024-01-01-00-00-00.gh-issue-00006.gGGGGG.rst',
         'Misc/NEWS.d/next/macOS/2024-01-01-00-00-00.gh-issue-00007.hHHHHH.rst',
-        'Misc/NEWS.d/next/IDLE/2024-01-01-00-00-00.gh-issue-00008.iIIIII.rst',
-        'Misc/NEWS.d/next/Tools-Demos/2024-01-01-00-00-00.gh-issue-00009.jJJJJJ.rst',
-        'Misc/NEWS.d/next/C_API/2024-01-01-00-00-00.gh-issue-00010.kKKKKK.rst',
+        'Misc/NEWS.d/next/iOS/2024-01-01-00-00-00.gh-issue-00008.iIIIII.rst',
+        'Misc/NEWS.d/next/Android/2024-01-01-00-00-00.gh-issue-00009.jJJJJJ.rst',
+        'Misc/NEWS.d/next/FreeBSD/2024-01-01-00-00-00.gh-issue-00010.kKKKKK.rst',
+        'Misc/NEWS.d/next/WASI/2024-01-01-00-00-00.gh-issue-00011.lLLLLL.rst',
+        'Misc/NEWS.d/next/Emscripten/2024-01-01-00-00-00.gh-issue-00012.mMMMMM.rst',
+        'Misc/NEWS.d/next/Unsupported_platforms/2024-01-01-00-00-00.gh-issue-00013.nNNNNN.rst',
+        'Misc/NEWS.d/next/IDLE/2024-01-01-00-00-00.gh-issue-00014.oOOOOO.rst',
+        'Misc/NEWS.d/next/Tools-Demos/2024-01-01-00-00-00.gh-issue-00015.pPPPPP.rst',
+        'Misc/NEWS.d/next/C_API/2024-01-01-00-00-00.gh-issue-00016.qQQQQQ.rst',
     ]
     for path in fake_news_entries:
         fs.create_file(path)
