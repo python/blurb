@@ -226,7 +226,16 @@ class Blurbs(list):
                         throw(f'Blurb metadata sets {name!r} twice!')
                     metadata[name] = value
                     continue
-                if line.startswith('#') or not line:
+                if line.startswith('#'):
+                    # Catch a CVE that was filled in but left commented out.
+                    _, found, value = line[1:].strip().partition('.. cve:')
+                    if found and value.strip():
+                        throw(
+                            f'CVE given but the line is still commented out: {line!r}\n'
+                            "Remove the leading '#' to use it."
+                        )
+                    continue
+                if not line:
                     continue
                 in_metadata = False
 

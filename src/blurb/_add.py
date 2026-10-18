@@ -240,8 +240,6 @@ def _add_blurb_from_template(args: Sequence[str], tmp_path: str) -> Blurbs | Non
         assert len(blurb)  # if parse_blurb succeeds, we should always have a body
         if len(blurb) > 1:
             failure = "Too many entries!  Don't specify '..' on a line by itself."
-        else:
-            failure = _check_commented_cve(tmp_path)
 
     if failure:
         print()
@@ -249,16 +247,3 @@ def _add_blurb_from_template(args: Sequence[str], tmp_path: str) -> Blurbs | Non
         print()
         return None
     return blurb
-
-
-def _check_commented_cve(tmp_path: str) -> str:
-    """Return an error message if a CVE was filled in but left commented out."""
-    with open(tmp_path, encoding='utf-8') as file:
-        for line in file:
-            line = line.strip()
-            if line.startswith('#.. cve:') and line.removeprefix('#.. cve:').strip():
-                return (
-                    f'A CVE was given but the line is still commented out: {line!r}\n'
-                    "Remove the leading '#' to use it."
-                )
-    return ''

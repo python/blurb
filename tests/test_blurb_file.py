@@ -168,6 +168,14 @@ def test_parse_no_changes():
             '.. gh-issue: 123456\n.. section: Library\n.. cve: CVE-2025-1234\nHello world!',
             r"'cve:' may only be used in the 'Security' section!",
         ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#.. cve: CVE-2025-1234\nHello world!',
+            r"CVE given but the line is still commented out: '#.. cve: CVE-2025-1234'",
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#  .. cve:CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
     ),
 )
 def test_parse_no_body(contents, expected_error):
@@ -234,3 +242,10 @@ def test_save_next_keeps_cve(fs, monkeypatch):
     reloaded = Blurbs()
     reloaded.load_next(path)
     assert reloaded[0][0]['cve'] == 'CVE-2025-1234'
+
+
+@pytest.mark.parametrize('line', ('#.. cve:', '#.. cve: ', '# .. cve:'))
+def test_parse_empty_commented_cve_ok(line):
+    blurbs = Blurbs()
+    blurbs.parse(f'.. gh-issue: 123456\n.. section: Library\n{line}\nHello world!')
+    assert 'cve' not in blurbs[0][0]

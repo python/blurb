@@ -5,7 +5,6 @@ import pytest
 import blurb._add
 from blurb._add import (
     _blurb_template_text,
-    _check_commented_cve,
     _extract_cve,
     _extract_issue_number,
     _extract_section_name,
@@ -237,21 +236,3 @@ def test_malformed_cve_line(monkeypatch):
         cm.setattr(blurb._add, 'template', template)
         with pytest.raises(SystemExit, match=error_message):
             _blurb_template_text(issue=None, section=None, cve='CVE-2025-12345')
-
-
-@pytest.mark.parametrize(
-    ('line', 'expected'),
-    [
-        ('#.. cve:', ''),
-        ('#.. cve: ', ''),
-        ('.. cve: CVE-2025-12345', ''),
-        ('#.. cve: CVE-2025-12345', 'still commented out'),
-        ('#.. cve:CVE-2025-12345', 'still commented out'),
-    ],
-)
-def test_check_commented_cve(line, expected, tmp_path):
-    path = tmp_path / 'entry.rst'
-    path.write_text(f'.. gh-issue: 123456\n.. section: Security\n{line}\n\nBody.\n')
-    result = _check_commented_cve(str(path))
-    assert expected in result
-    assert bool(result) == bool(expected)

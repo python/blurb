@@ -24,6 +24,6 @@ def test_write_news_renders_cve(fs):
 
     # Assert
     text = Path('NEWS').read_text(encoding='utf-8')
-    assert '- gh-135661, CVE-2025-6069: Fix a security issue.\n' in text
+    assert '- CVE-2025-6069, gh-135661: Fix a security issue.\n' in text
     assert '- gh-135660: Fix another security issue without a CVE.\n' in text
     assert '- gh-135662: Fix a library issue.\n' in text

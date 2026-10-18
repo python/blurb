@@ -104,8 +104,9 @@ Python News
                 issue_number = metadata['bpo']
                 if int(issue_number):
                     prefix = f'bpo-{issue_number}'
+
             if cve := metadata.get('cve'):
-                prefix = f'{prefix}, {cve}' if prefix else cve
+                prefix = f'{cve}, {prefix}' if prefix else cve
             if prefix:
                 body = f'{prefix}: {body}'
 
