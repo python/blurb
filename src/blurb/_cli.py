@@ -73,8 +73,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser_add.add_argument(
         '-c',
         '--cve',
-        metavar='CVE',
-        help='CVE identifier, e.g. `CVE-2026-12345` (Security section only)',
+        metavar='CVE-YYYY-NNNNN',
+        help='CVE identifier (Security section only)',
     )
     parser_add.set_defaults(
         func=lambda ns: add(issue=ns.issue, section=ns.section, cve=ns.cve)

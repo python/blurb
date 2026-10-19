@@ -217,7 +217,7 @@ def test_valid_cve(cve, section):
 
 @pytest.mark.parametrize('cve', ['', 'abc', 'CVE-25-1', 'CVE-2025', 'CVE-2025-1'])
 def test_invalid_cve(cve):
-    error_message = re.escape(f'Invalid CVE identifier: {cve}')
+    error_message = re.escape(f'Invalid CVE identifier: {cve} (expected CVE-YYYY-NNNN)')
     with pytest.raises(SystemExit, match=error_message):
         _blurb_template_text(issue=None, section=None, cve=cve)
 

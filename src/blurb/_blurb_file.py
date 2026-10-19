@@ -228,8 +228,13 @@ class Blurbs(list):
                     continue
                 if line.startswith('#'):
                     # Catch a CVE that was filled in but left commented out.
-                    _, found, value = line[1:].strip().partition('.. cve:')
-                    if found and value.strip():
+                    comment = line[1:].strip()
+                    name, _, value = comment[2:].partition(':')
+                    if (
+                        comment.startswith('..')
+                        and name.lower().strip() == 'cve'
+                        and value.strip()
+                    ):
                         throw(
                             f'CVE given but the line is still commented out: {line!r}\n'
                             "Remove the leading '#' to use it."

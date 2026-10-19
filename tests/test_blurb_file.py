@@ -176,9 +176,17 @@ def test_parse_no_changes():
             '.. gh-issue: 123456\n.. section: Security\n#  .. cve:CVE-2025-1234\nHello world!',
             r'CVE given but the line is still commented out',
         ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#.. CVE: CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#..cve: CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
     ),
 )
-def test_parse_no_body(contents, expected_error):
+def test_parse_errors(contents, expected_error):
     # Arrange
     blurbs = Blurbs()
 

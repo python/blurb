@@ -126,10 +126,11 @@ def _blurb_template_text(
     issue_number = _extract_issue_number(issue)
     section_name = _extract_section_name(section)
     cve_id = _extract_cve(cve)
-    if cve_id is not None and section_name is None:
-        section_name = cve_section
-    if cve_id is not None and section_name != cve_section:
-        raise SystemExit(f'A CVE may only be given for the {cve_section!r} section')
+    if cve_id is not None:
+        if section_name is None:
+            section_name = cve_section
+        elif section_name != cve_section:
+            raise SystemExit(f'A CVE may only be given for the {cve_section!r} section')
 
     text = template
 
@@ -168,7 +169,7 @@ def _extract_cve(cve: str | None, /) -> str | None:
         return None
     cve_id = normalize_cve(cve)
     if cve_id is None:
-        raise SystemExit(f'Invalid CVE identifier: {cve}')
+        raise SystemExit(f'Invalid CVE identifier: {cve} (expected CVE-YYYY-NNNN)')
     return cve_id
 
 
