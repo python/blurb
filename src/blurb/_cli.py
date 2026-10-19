@@ -154,10 +154,7 @@ def chdir_to_repo_root() -> str:
                     return False
             return True
 
-        if not (
-            test_first_line('README', readme_re)
-            or test_first_line('README.rst', readme_re)
-        ):
+        if not test_first_line('README.rst', readme_re):
             continue
 
         if not test_first_line('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
