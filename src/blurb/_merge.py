@@ -104,8 +104,7 @@ Python News
                 if int(issue_number):
                     body = f'bpo-{issue_number}: {body}'
 
-            body = f'- {body}'
-            text = textwrap_body(body, subsequent_indent='  ')
+            text = textwrap_body(body, initial_indent='- ', subsequent_indent='  ')
             prnt(text)
     prnt()
     prnt('**(For information about older versions, consult the HISTORY file.)**')

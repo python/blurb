@@ -71,3 +71,26 @@ from blurb._utils.text import textwrap_body
 )
 def test_textwrap_body(body, subsequent_indent, expected):
     assert textwrap_body(body, subsequent_indent=subsequent_indent) == expected
+
+
+@pytest.mark.parametrize(
+    'body, expected',
+    (
+        (
+            'gh-123456: This is a long sentence that keeps going on and on so that it must wrap when\n'
+            'merged into the NEWS file.\n',
+            '- gh-123456: This is a long sentence that keeps going on and on so that it\n'
+            '  must wrap when merged into the NEWS file.\n',
+        ),
+        (
+            'First paragraph.\n\nSecond paragraph.\n',
+            '- First paragraph.\n\n  Second paragraph.\n',
+        ),
+        (
+            'Some changes:\n\n- Item 1\n- Item 2\n',
+            '- Some changes:\n\n  - Item 1\n  - Item 2\n',
+        ),
+    ),
+)
+def test_textwrap_body_initial_indent(body, expected):
+    assert textwrap_body(body, initial_indent='- ', subsequent_indent='  ') == expected
