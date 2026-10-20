@@ -10,6 +10,7 @@ import blurb
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import NoReturn
 
 readme_re = re.compile(r'This is \w+ version \d+\.\d+').match
@@ -134,6 +135,14 @@ def main(argv: list[str] | None = None) -> None:
     ns.func(ns)
 
 
+def test_first_line(filename: str, test: Callable[[str], object]) -> bool:
+    if not os.path.exists(filename):
+        return False
+    with open(filename, encoding='utf-8') as file:
+        lines = file.read().split('\n')
+    return bool(lines and test(lines[0]))
+
+
 def chdir_to_repo_root() -> str:
     # find the root of the local CPython repo
     # note that we can't ask git, because we might
@@ -149,15 +158,6 @@ def chdir_to_repo_root() -> str:
         path = next_path
 
         os.chdir(path)
-
-        def test_first_line(filename, test):
-            if not os.path.exists(filename):
-                return False
-            with open(filename, encoding='utf-8') as file:
-                lines = file.read().split('\n')
-                if not (lines and test(lines[0])):
-                    return False
-            return True
 
         if not test_first_line('README.rst', readme_re):
             continue
