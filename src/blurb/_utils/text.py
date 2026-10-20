@@ -10,7 +10,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> str:
+def textwrap_body(
+    body: str | Iterable[str],
+    *,
+    initial_indent: str = '',
+    subsequent_indent: str = '',
+) -> str:
     """Wrap body text.
 
     Accepts either a string or an iterable of strings.
@@ -34,12 +39,14 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
     paragraphs = text.split('\n\n')
     paragraphs2 = []
     kwargs: dict[str, object] = {'break_long_words': False, 'break_on_hyphens': False}
+    if initial_indent:
+        kwargs['initial_indent'] = initial_indent
     if subsequent_indent:
         kwargs['subsequent_indent'] = subsequent_indent
     dont_reflow = False
     for paragraph in paragraphs:
         # don't reflow bulleted / numbered lists
-        dont_reflow = dont_reflow or paragraph.startswith(('* ', '1. ', '#. '))
+        dont_reflow = dont_reflow or paragraph.startswith(('* ', '- ', '1. ', '#. '))
         if dont_reflow:
             initial = kwargs.get('initial_indent', '')
             subsequent = kwargs.get('subsequent_indent', '')
@@ -91,6 +98,9 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
             paragraph = '\n'.join(
                 textwrap.wrap(paragraph.strip(), width=76, **kwargs)
             ).rstrip()
+            # Remove the initial indent added by the first pass,
+            # otherwise the second pass would add it again.
+            paragraph = paragraph.removeprefix(initial_indent)
             paragraph = '\n'.join(
                 textwrap.wrap(paragraph.strip(), width=76, **kwargs)
             ).rstrip()
