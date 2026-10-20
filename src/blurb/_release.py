@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 import time
 
-import blurb._blurb_file
-from blurb._blurb_file import Blurbs
+from blurb import _blurb_file
 from blurb._cli import error
 from blurb._git import (
     flush_git_add_files,
@@ -24,7 +23,7 @@ def release(version: str) -> None:
     if version == '.':
         # harvest version number from dirname of repo
         # I remind you, we're in the Misc subdir right now
-        version = os.path.basename(blurb._blurb_file.root)
+        version = os.path.basename(_blurb_file.root)
 
     existing_filenames = glob_blurbs(version)
     if existing_filenames:
@@ -34,7 +33,8 @@ def release(version: str) -> None:
 
     output = f'Misc/NEWS.d/{version}.rst'
     filenames = glob_blurbs('next')
-    blurbs = Blurbs()
+    count = len(filenames)
+    blurbs = _blurb_file.Blurbs()
     date = current_date()
 
     if not filenames:
@@ -49,7 +49,6 @@ def release(version: str) -> None:
         }
         blurbs.append((metadata, body))
     else:
-        count = len(filenames)
         print(f'Merging {count} blurbs to "{output}".')
 
         for filename in filenames:
@@ -66,13 +65,12 @@ def release(version: str) -> None:
     git_add_files.append(output)
     flush_git_add_files()
 
-    how_many = len(filenames)
-    print(f"Removing {how_many} 'next' files from git.")
+    print(f"Removing {count} 'next' files from git.")
     git_rm_files.extend(filenames)
     flush_git_rm_files()
 
     # sanity check: ensuring that saving/reloading the merged blurb file works.
-    blurbs2 = Blurbs()
+    blurbs2 = _blurb_file.Blurbs()
     blurbs2.load(output)
     assert blurbs2 == blurbs, f"Reloading {output} isn't reproducible?!"
 

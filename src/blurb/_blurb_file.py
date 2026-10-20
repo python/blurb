@@ -78,7 +78,7 @@ blurb in a blurb file.
   * "release date" is the day a particular version of Python was released.
   * "no changes", if present, notes that there were no actual changes
     for this version.  When used, there are two more things that must be
-    true about the the blurb file:
+    true about the blurb file:
       * There should only be one entry inside the blurb file.
       * That entry's gh-issue number must be 0.
 
@@ -144,7 +144,6 @@ class Blurbs(list):
             nonlocal body
             nonlocal in_metadata
             nonlocal metadata
-            nonlocal self
 
             if not body:
                 throw("Blurb 'body' text must not be empty!")
@@ -341,7 +340,7 @@ class Blurbs(list):
                 metadata
             )
         elif int(metadata['bpo']) > 0:
-            # assume it's a GH issue number
+            # legacy bugs.python.org issue number
             path = '{root}/Misc/NEWS.d/next/{section}/{date}.bpo-{bpo}.{nonce}.rst'.format_map(
                 metadata
             )

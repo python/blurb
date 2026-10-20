@@ -14,7 +14,7 @@ def glob_versions() -> list[str]:
 
 
 def version_key(element: str, /) -> str:
-    fields = list(element.split('.'))
+    fields = element.split('.')
     if len(fields) == 1:
         return element
 

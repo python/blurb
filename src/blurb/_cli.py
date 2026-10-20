@@ -10,6 +10,7 @@ import blurb
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import NoReturn
 
 readme_re = re.compile(r'This is \w+ version \d+\.\d+').match
@@ -23,12 +24,9 @@ def prompt(prompt: str, /) -> str:
     return input(f'[{prompt}> ')
 
 
-def require_ok(prompt: str, /) -> str:
-    prompt = f'[{prompt}> '
-    while True:
-        s = input(prompt).strip()
-        if s == 'ok':
-            return s
+def require_ok(message: str, /) -> None:
+    while prompt(message).strip() != 'ok':
+        pass
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -137,6 +135,14 @@ def main(argv: list[str] | None = None) -> None:
     ns.func(ns)
 
 
+def first_line_matches(filename: str, test: Callable[[str], object]) -> bool:
+    if not os.path.exists(filename):
+        return False
+    with open(filename, encoding='utf-8') as file:
+        lines = file.read().split('\n')
+    return bool(lines and test(lines[0]))
+
+
 def chdir_to_repo_root() -> str:
     # find the root of the local CPython repo
     # note that we can't ask git, because we might
@@ -153,19 +159,9 @@ def chdir_to_repo_root() -> str:
 
         os.chdir(path)
 
-        def test_first_line(filename, test):
-            if not os.path.exists(filename):
-                return False
-            with open(filename, encoding='utf-8') as file:
-                lines = file.read().split('\n')
-                if not (lines and test(lines[0])):
-                    return False
-            return True
-
-        if not test_first_line('README.rst', readme_re):
+        if not first_line_matches('README.rst', readme_re):
             continue
-
-        if not test_first_line('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
+        if not first_line_matches('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
             continue
         if not os.path.exists('Include/Python.h'):
             continue
