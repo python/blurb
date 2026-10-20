@@ -34,6 +34,7 @@ def release(version: str) -> None:
 
     output = f'Misc/NEWS.d/{version}.rst'
     filenames = glob_blurbs('next')
+    count = len(filenames)
     blurbs = Blurbs()
     date = current_date()
 
@@ -49,7 +50,6 @@ def release(version: str) -> None:
         }
         blurbs.append((metadata, body))
     else:
-        count = len(filenames)
         print(f'Merging {count} blurbs to "{output}".')
 
         for filename in filenames:
@@ -66,8 +66,7 @@ def release(version: str) -> None:
     git_add_files.append(output)
     flush_git_add_files()
 
-    how_many = len(filenames)
-    print(f"Removing {how_many} 'next' files from git.")
+    print(f"Removing {count} 'next' files from git.")
     git_rm_files.extend(filenames)
     flush_git_rm_files()
 
