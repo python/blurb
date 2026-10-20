@@ -73,7 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser_add.add_argument(
         '-c',
         '--cve',
-        metavar='CVE-YYYY-NNNNN',
+        metavar='CVE-YYYY-NNNN',
         help='CVE identifier (Security section only)',
     )
     parser_add.set_defaults(
