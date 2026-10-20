@@ -144,7 +144,6 @@ class Blurbs(list):
             nonlocal body
             nonlocal in_metadata
             nonlocal metadata
-            nonlocal self
 
             if not body:
                 throw("Blurb 'body' text must not be empty!")
