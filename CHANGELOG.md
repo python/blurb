@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.0
+
+* Add sections for more platforms by @StanFromIreland in https://github.com/python/blurb/pull/94
+* Don't reflow dashed lists, same as asterisk lists, by @hugovk in https://github.com/python/blurb/pull/87
+* Add optional CVE metadata for Security entries by @StanFromIreland in https://github.com/python/blurb/pull/95
+
 ## 2.2.0
 
 * Drop support for EOL Python 3.10 by @hugovk in https://github.com/python/blurb/pull/90
