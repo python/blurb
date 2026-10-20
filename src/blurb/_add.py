@@ -182,20 +182,14 @@ def _extract_issue_number(issue: str | None, /) -> int | None:
         stripped = issue[3:]
     else:
         stripped = issue.removeprefix('#')
-    try:
-        if stripped.isdecimal():
-            return int(stripped)
-    except ValueError:
-        pass
+    if stripped.isdecimal():
+        return int(stripped)
 
     # Allow GitHub URL with or without the scheme
     stripped = issue.removeprefix('https://')
     stripped = stripped.removeprefix('github.com/python/cpython/issues/')
-    try:
-        if stripped.isdecimal():
-            return int(stripped)
-    except ValueError:
-        pass
+    if stripped.isdecimal():
+        return int(stripped)
 
     raise SystemExit(f'Invalid GitHub issue number: {issue}')
 
