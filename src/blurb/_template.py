@@ -60,12 +60,7 @@ _sanitize_section = {
     'Unsupported platforms': 'Unsupported_platforms',
 }
 
-_unsanitize_section = {
-    'C_API': 'C API',
-    'Core_and_Builtins': 'Core and Builtins',
-    'Tools-Demos': 'Tools/Demos',
-    'Unsupported_platforms': 'Unsupported platforms',
-}
+_unsanitize_section = {v: k for k, v in _sanitize_section.items()}
 
 
 def sanitize_section(section: str, /) -> str:
