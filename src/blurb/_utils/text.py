@@ -26,10 +26,7 @@ def textwrap_body(body: str | Iterable[str], *, subsequent_indent: str = '') -> 
 
     # step 1: remove trailing whitespace from individual lines
     #   (this means that empty lines will just have \n, no invisible whitespace)
-    lines = []
-    for line in text.split('\n'):
-        lines.append(line.rstrip())
-    text = '\n'.join(lines)
+    text = '\n'.join(line.rstrip() for line in text.split('\n'))
     # step 2: break into paragraphs and wrap those
     paragraphs = text.split('\n\n')
     paragraphs2 = []
