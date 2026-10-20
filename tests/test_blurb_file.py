@@ -2,7 +2,7 @@ import pytest
 import time_machine
 
 import blurb._blurb_file
-from blurb._blurb_file import BlurbError, Blurbs, sortable_datetime
+from blurb._blurb_file import BlurbError, Blurbs, normalize_cve, sortable_datetime
 
 
 @pytest.mark.parametrize(
@@ -156,9 +156,37 @@ def test_parse_no_changes():
             '.. section: IDLE\nHello world!',
             r"'gh-issue:' or 'bpo:' must be specified in the metadata!",
         ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n.. cve: 12345\nHello world!',
+            r"Invalid CVE identifier: '12345' \(expected CVE-YYYY-NNNN\)",
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n.. cve:\nHello world!',
+            r"Invalid CVE identifier: '' \(expected CVE-YYYY-NNNN\)",
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Library\n.. cve: CVE-2025-1234\nHello world!',
+            r"'cve:' may only be used in the 'Security' section!",
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#.. cve: CVE-2025-1234\nHello world!',
+            r"CVE given but the line is still commented out: '#.. cve: CVE-2025-1234'",
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#  .. cve:CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#.. CVE: CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
+        (
+            '.. gh-issue: 123456\n.. section: Security\n#..cve: CVE-2025-1234\nHello world!',
+            r'CVE given but the line is still commented out',
+        ),
     ),
 )
-def test_parse_no_body(contents, expected_error):
+def test_parse_errors(contents, expected_error):
     # Arrange
     blurbs = Blurbs()
 
@@ -170,3 +198,62 @@ def test_parse_no_body(contents, expected_error):
 @time_machine.travel('2025-01-07 16:28:41')
 def test_sortable_datetime():
     assert sortable_datetime() == '2025-01-07-16-28-41'
+
+
+@pytest.mark.parametrize(
+    'value, expected',
+    (
+        ('CVE-2025-1234', 'CVE-2025-1234'),
+        ('cve-2025-1234', 'CVE-2025-1234'),
+        ('  CVE-2025-123456  ', 'CVE-2025-123456'),
+        ('2025-1234', 'CVE-2025-1234'),
+        ('', None),
+        ('CVE-2025', None),
+        ('CVE-25-1234', None),
+        ('CVE-2025-123', None),
+        ('CVE-2025-1234x', None),
+        ('CVE 2025 1234', None),
+    ),
+)
+def test_normalize_cve(value, expected):
+    assert normalize_cve(value) == expected
+
+
+@pytest.mark.parametrize('cve', ('CVE-2025-1234', 'cve-2025-1234', '2025-1234'))
+def test_parse_cve(cve):
+    # Arrange
+    contents = f'.. gh-issue: 123456\n.. section: Security\n.. cve: {cve}\nHello world!'
+    blurbs = Blurbs()
+
+    # Act
+    blurbs.parse(contents)
+
+    # Assert
+    metadata, body = blurbs[0]
+    assert metadata['cve'] == 'CVE-2025-1234'
+    assert '.. cve: CVE-2025-1234\n' in str(blurbs)
+
+
+def test_save_next_keeps_cve(fs, monkeypatch):
+    # Arrange
+    monkeypatch.setattr(blurb._blurb_file, 'root', '/root')
+    blurbs = Blurbs()
+    blurbs.parse(
+        '.. gh-issue: 123456\n.. section: Security\n.. cve: CVE-2025-1234\nHello world!'
+    )
+
+    # Act
+    path = blurbs.save_next()
+
+    # Assert
+    assert '/Misc/NEWS.d/next/Security/' in path
+    reloaded = Blurbs()
+    reloaded.load_next(path)
+    assert reloaded[0][0]['cve'] == 'CVE-2025-1234'
+
+
+@pytest.mark.parametrize('line', ('#.. cve:', '#.. cve: ', '# .. cve:'))
+def test_parse_empty_commented_cve_ok(line):
+    blurbs = Blurbs()
+    blurbs.parse(f'.. gh-issue: 123456\n.. section: Library\n{line}\nHello world!')
+    assert 'cve' not in blurbs[0][0]

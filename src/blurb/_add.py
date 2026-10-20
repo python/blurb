@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 
-from blurb._blurb_file import BlurbError, Blurbs
+from blurb._blurb_file import BlurbError, Blurbs, cve_section, normalize_cve
 from blurb._cli import error, prompt
 from blurb._git import flush_git_add_files, git_add_files
 from blurb._template import sections, template
@@ -23,7 +23,12 @@ else:
     FALLBACK_EDITORS = ('/etc/alternatives/editor', 'nano')
 
 
-def add(*, issue: str | None = None, section: str | None = None):
+def add(
+    *,
+    issue: str | None = None,
+    section: str | None = None,
+    cve: str | None = None,
+):
     """Add a blurb (a `Misc/NEWS.d/next` entry) to the current CPython repo.
 
     Use `-i`/`--issue` to specify a GitHub issue number or link, e.g.:
@@ -42,13 +47,17 @@ def add(*, issue: str | None = None, section: str | None = None):
     spaces in names can be substituted for underscores:
 
 {sections}
+
+    Use `-c`/`--cve` to specify the CVE identifier for a Security entry, e.g.:
+
+        blurb add -s Security -c CVE-2025-12345
     """  # fmt: skip
 
     handle, tmp_path = tempfile.mkstemp('.rst')
     os.close(handle)
     atexit.register(lambda: os.unlink(tmp_path))
 
-    text = _blurb_template_text(issue=issue, section=section)
+    text = _blurb_template_text(issue=issue, section=section, cve=cve)
     with open(tmp_path, 'w', encoding='utf-8') as file:
         file.write(text)
 
@@ -108,9 +117,20 @@ def _find_editor() -> str:
     error('Could not find an editor! Set the EDITOR environment variable.')
 
 
-def _blurb_template_text(*, issue: str | None, section: str | None) -> str:
+def _blurb_template_text(
+    *,
+    issue: str | None,
+    section: str | None,
+    cve: str | None = None,
+) -> str:
     issue_number = _extract_issue_number(issue)
     section_name = _extract_section_name(section)
+    cve_id = _extract_cve(cve)
+    if cve_id is not None:
+        if section_name is None:
+            section_name = cve_section
+        elif section_name != cve_section:
+            raise SystemExit(f'A CVE may only be given for the {cve_section!r} section')
 
     text = template
 
@@ -133,7 +153,24 @@ def _blurb_template_text(*, issue: str | None, section: str | None) -> str:
         pattern = f'.. section: {section_name}'
         text = text.replace(f'#{pattern}', pattern)
 
+    # Uncomment and fill in the CVE if needed.
+    if cve_id is not None:
+        cve_line = '#.. cve:'
+        without_cve = f'\n{cve_line}\n'
+        if without_cve not in text:
+            raise SystemExit("Can't find cve line in the template!")
+        text = text.replace(without_cve, f'\n.. cve: {cve_id}\n')
+
     return text
+
+
+def _extract_cve(cve: str | None, /) -> str | None:
+    if cve is None:
+        return None
+    cve_id = normalize_cve(cve)
+    if cve_id is None:
+        raise SystemExit(f'Invalid CVE identifier: {cve} (expected CVE-YYYY-NNNN)')
+    return cve_id
 
 
 def _extract_issue_number(issue: str | None, /) -> int | None:
