@@ -161,7 +161,6 @@ def chdir_to_repo_root() -> str:
 
         if not first_line_matches('README.rst', readme_re):
             continue
-
         if not first_line_matches('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
             continue
         if not os.path.exists('Include/Python.h'):
