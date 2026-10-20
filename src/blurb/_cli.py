@@ -23,12 +23,9 @@ def prompt(prompt: str, /) -> str:
     return input(f'[{prompt}> ')
 
 
-def require_ok(prompt: str, /) -> str:
-    prompt = f'[{prompt}> '
-    while True:
-        s = input(prompt).strip()
-        if s == 'ok':
-            return s
+def require_ok(message: str, /) -> None:
+    while prompt(message).strip() != 'ok':
+        pass
 
 
 def build_parser() -> argparse.ArgumentParser:
