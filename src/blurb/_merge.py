@@ -44,15 +44,6 @@ def write_news(output: str, *, versions: list[str]) -> None:
     def prnt(msg: str = '', /):
         buff.append(msg)
 
-    prnt(
-        """
-+++++++++++
-Python News
-+++++++++++
-
-""".strip()
-    )
-
     for version in versions:
         filenames = glob_blurbs(version)
 
@@ -70,7 +61,7 @@ Python News
             assert len(filenames) == 1
             blurbs.load(filenames[0])
 
-        header = f"What's New in Python {printable_version(version)}?"
+        header = printable_version(version)
         prnt()
         prnt(header)
         prnt('=' * len(header))
@@ -98,11 +89,11 @@ Python News
             if metadata.get('gh-issue'):
                 issue_number = metadata['gh-issue']
                 if int(issue_number):
-                    body = f'gh-{issue_number}: {body}'
+                    body = f":gh:`{issue_number}`: {body}"
             elif metadata.get('bpo'):
                 issue_number = metadata['bpo']
                 if int(issue_number):
-                    body = f'bpo-{issue_number}: {body}'
+                    body = f":issue:`{issue_number}`: {body}"
 
             body = f'- {body}'
             text = textwrap_body(body, subsequent_indent='  ')
