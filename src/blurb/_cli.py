@@ -135,7 +135,7 @@ def main(argv: list[str] | None = None) -> None:
     ns.func(ns)
 
 
-def test_first_line(filename: str, test: Callable[[str], object]) -> bool:
+def first_line_matches(filename: str, test: Callable[[str], object]) -> bool:
     if not os.path.exists(filename):
         return False
     with open(filename, encoding='utf-8') as file:
@@ -159,10 +159,10 @@ def chdir_to_repo_root() -> str:
 
         os.chdir(path)
 
-        if not test_first_line('README.rst', readme_re):
+        if not first_line_matches('README.rst', readme_re):
             continue
 
-        if not test_first_line('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
+        if not first_line_matches('LICENSE', 'A. HISTORY OF THE SOFTWARE'.__eq__):
             continue
         if not os.path.exists('Include/Python.h'):
             continue
