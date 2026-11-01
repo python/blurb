@@ -19,4 +19,4 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
-      - uses: tox-dev/action-pre-commit-uv@e09b8958484dfe71f4ac3bc7afb230ba506402ec # 1.0.5
+      - uses: tox-dev/action-pre-commit-uv@4de52c139ed1a6963bcc4c30042c4ef9d75d8b11 # 1.1.0
